@@ -16,6 +16,22 @@ dist-ssr
 .nitro
 *.local
 
+# Env / secrets
+# Nota: .env actual está commiteado a propósito (solo contiene la anon key pública
+# que Lovable gestiona). Cualquier variante con claves sensibles (service_role,
+# tokens privados, VAPID private) NUNCA debe commitearse.
+.env.secret
+.env.production
+.env.local
+!.env.example
+
+# Claude local artifacts that may carry credentials (skills dir SÍ se commitea)
+.claude/*.local.*
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
