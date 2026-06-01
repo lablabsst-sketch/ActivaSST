@@ -65,8 +65,8 @@ self.addEventListener("push", (event: PushEvent) => {
       icon: ICON,
       badge: BADGE,
       tag,
-      renotify: false,
-    }),
+      // renotify: false (default). Se omite porque el tipo NotificationOptions del lib DOM no lo declara.
+    } as NotificationOptions),
   );
 });
 
