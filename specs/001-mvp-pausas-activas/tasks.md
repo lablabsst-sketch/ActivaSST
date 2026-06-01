@@ -24,12 +24,12 @@ Convenciones:
 
 ## Phase 2 — Foundational (bloqueante para todas las US)
 
-- [ ] **T010** Migración SQL `0001_init.sql`: tablas `empresas`, `usuarios`, `tipos_trabajo`, `usuario_tipos_trabajo`, sin RLS aún. Seed `tipos_trabajo` (oficina, operativo, conducción, bodega, ventas, atención al cliente).
-- [ ] **T011** Migración `0002_pausas.sql`: tablas `pausas`, `pausa_tipos_trabajo`. Bucket Storage `pausas-media` (público con políticas).
-- [ ] **T012** Migración `0003_programaciones.sql`: tablas `programaciones`, `programacion_trabajadores`, `pausa_registros` (con UNIQUE en `response_uuid`).
-- [ ] **T013** Migración `0004_push_y_consent.sql`: tablas `push_subscriptions`, `consentimientos`.
-- [ ] **T014** Migración `0005_rls.sql`: habilitar RLS y políticas para todas las tablas según roles `prevencionista`, `trabajador`, `empresa_admin`. Incluir test SQL en comentario.
-- [ ] **T015** Migración `0006_audit.sql`: trigger que impide UPDATE/DELETE en `pausa_registros` salvo desde rol `service_role`.
+- [x] **T010** Migración SQL `0001_init.sql`: tablas `empresas`, `usuarios`, `tipos_trabajo`, `usuario_tipos_trabajo`. Seed `tipos_trabajo` (oficina, operativo, conducción, bodega, ventas, atención al cliente). Helpers `current_empresa_id()` y `current_rol()`.
+- [x] **T011** Migración `0002_pausas.sql`: tablas `pausas`, `pausa_tipos_trabajo`. Bucket Storage `pausas-media` (público, 50MB, MIME whitelist).
+- [x] **T012** Migración `0003_programaciones.sql`: tablas `programaciones`, `programacion_trabajadores`, `pausa_registros` (UNIQUE en `response_uuid` y en `(programacion_id, trabajador_id)`).
+- [x] **T013** Migración `0004_push_y_consent.sql`: tablas `push_subscriptions` (con enum `web|fcm`), `consentimientos`.
+- [x] **T014** Migración `0005_rls.sql`: RLS habilitada y políticas por rol en todas las tablas + Storage policies para `pausas-media`.
+- [x] **T015** Migración `0006_audit.sql`: trigger bloqueando UPDATE/DELETE en `pausa_registros` + stamp server-side de `respondido_en`.
 - [ ] **T016** [P] `src/lib/supabase.ts`: cliente tipado con `Database` types generados (`supabase gen types`).
 - [ ] **T017** Rutas auth: `/login`, `/magic-link` con Supabase Auth (`signInWithOtp`). Layout `(auth)` shadcn.
 - [ ] **T018** Hook `useSession()` + guard de rutas. Redirección por rol al loguearse: prevencionista → `/prevencionista`, trabajador → `/trabajador`.
