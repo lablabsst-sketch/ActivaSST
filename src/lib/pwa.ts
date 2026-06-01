@@ -13,11 +13,10 @@ export function registerServiceWorker() {
 
   const host = window.location.hostname;
   const isPreviewHost =
-    host.includes("id-preview--") ||
-    host.includes("preview--") ||
+    host.startsWith("id-preview--") ||
+    host.startsWith("preview--") ||
     host.endsWith("lovableproject.com") ||
-    host.endsWith("lovableproject-dev.com") ||
-    host.endsWith("lovable.app");
+    host.endsWith("lovableproject-dev.com");
 
   if (isInIframe || isPreviewHost) {
     navigator.serviceWorker.getRegistrations().then((regs) => {
