@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -23,16 +25,52 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function LoginPage() {
+  const [sent, setSent] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  const onSubmit = async (_values: FormValues) => {
-    // Placeholder: aquí irá supabase.auth.signInWithOtp({ email })
-    await new Promise((r) => setTimeout(r, 400));
+  // Mensaje neutro siempre (FR-019): no revela si el email está en whitelist.
+  const NEUTRAL_MESSAGE =
+    "Si tu correo está autorizado, recibirás un enlace de acceso en los próximos minutos. Revisa tu bandeja de entrada y spam.";
+
+  const onSubmit = async ({ email }: FormValues) => {
+    // 1) Pre-check whitelist sin filtrar resultado al usuario.
+    const { data: whitelisted } = await supabase.rpc("email_is_whitelisted", {
+      p_email: email,
+    });
+
+    // 2) Solo dispara magic link si está en whitelist.
+    if (whitelisted) {
+      const redirectTo =
+        typeof window !== "undefined" ? `${window.location.origin}/magic-link` : undefined;
+      await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
+      });
+    }
+
+    // 3) Respuesta UI idéntica en ambos casos.
+    setSent(true);
   };
+
+  if (sent) {
+    return (
+      <AppShell>
+        <section className="flex flex-col gap-4 pt-4">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">Revisa tu correo</h1>
+            <p className="text-sm text-muted-foreground">{NEUTRAL_MESSAGE}</p>
+          </header>
+          <Button variant="outline" onClick={() => setSent(false)}>
+            Usar otro correo
+          </Button>
+        </section>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -40,7 +78,7 @@ function LoginPage() {
         <header className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight">Iniciar sesión</h1>
           <p className="text-sm text-muted-foreground">
-            Te enviaremos un enlace mágico a tu correo.
+            Te enviaremos un enlace mágico a tu correo autorizado por tu empresa.
           </p>
         </header>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

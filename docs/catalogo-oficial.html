@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activa SST — Catálogo Pausas Activas</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #1DB954;
+    --verde-oscuro: #14833B;
+    --naranja: #FF6B2B;
+    --naranja-claro: #FF9A6C;
+    --negro: #0D0D0D;
+    --blanco: #F8F5F0;
+    --gris: #2A2A2A;
+    --gris-medio: #888;
+    --amarillo: #FFD166;
+    --azul: #4ECDC4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--negro);
+    color: var(--blanco);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 40px;
+    border-bottom: 2px solid var(--gris);
+    position: sticky;
+    top: 0;
+    background: var(--negro);
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--verde);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-text {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--verde); }
+
+  .badge-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    background: var(--naranja);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+
+  /* FILTROS */
+  .filters {
+    padding: 28px 40px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gris-medio);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-right: 6px;
+  }
+
+  .filter-btn {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--gris);
+    background: transparent;
+    color: var(--gris-medio);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--verde);
+    color: var(--verde);
+  }
+
+  .filter-btn.active {
+    background: var(--verde);
+    border-color: var(--verde);
+    color: var(--negro);
+  }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+    padding: 28px 40px 60px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--gris);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+    border: 1.5px solid transparent;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    border-color: var(--verde);
+  }
+
+  .card.hidden { display: none; }
+
+  .card-img {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-img svg {
+    width: 120px;
+    height: 120px;
+    transition: transform 0.3s;
+  }
+
+  .card:hover .card-img svg { transform: scale(1.08); }
+
+  .card-body { padding: 20px 22px 22px; flex: 1; display: flex; flex-direction: column; }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .card-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gris-medio);
+  }
+
+  .card-duration {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.08);
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: var(--blanco);
+  }
+
+  .card-pack {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+  }
+
+  .pack-oficina { background: rgba(77,205,196,0.15); color: var(--azul); }
+  .pack-operativo { background: rgba(255,107,43,0.15); color: var(--naranja); }
+  .pack-conduccion { background: rgba(255,209,102,0.15); color: var(--amarillo); }
+  .pack-universal { background: rgba(29,185,84,0.15); color: var(--verde); }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+
+  .tag {
+    font-size: 0.65rem;
+    font-family: 'Space Mono', monospace;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: var(--gris-medio);
+    text-transform: uppercase;
+  }
+
+  .card-arrow {
+    position: absolute;
+    bottom: 14px;
+    right: 18px;
+    font-size: 1rem;
+    color: var(--gris-medio);
+    transition: all 0.2s;
+  }
+
+  .card:hover .card-arrow { color: var(--verde); transform: translateX(4px); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(6px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #1A1A1A;
+    border-radius: 24px;
+    max-width: 680px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    border: 1.5px solid #333;
+    position: relative;
+    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 32px;
+    border-bottom: 1.5px solid #2A2A2A;
+  }
+
+  .modal-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .modal-icon svg { width: 72px; height: 72px; }
+
+  .modal-title-area { flex: 1; }
+
+  .modal-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--gris-medio);
+    margin-bottom: 6px;
+  }
+
+  .modal-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .modal-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .chip-dur { background: rgba(255,255,255,0.1); color: var(--blanco); font-family: 'Space Mono', monospace; }
+
+  .modal-body { padding: 28px 32px 32px; }
+
+  .modal-section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gris-medio);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    border-left: 3px solid var(--verde);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: #D0CCC6;
+  }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--verde);
+    min-width: 22px;
+    padding-top: 1px;
+  }
+
+  .step-warning {
+    border-left-color: var(--naranja);
+    background: rgba(255,107,43,0.05);
+  }
+  .step-warning .step-num { color: var(--naranja); }
+
+  .step-tip {
+    border-left-color: var(--azul);
+    background: rgba(78,205,196,0.05);
+  }
+  .step-tip .step-num { color: var(--azul); }
+
+  .tipos-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #2A2A2A;
+  }
+
+  .tipo-chip {
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    padding: 5px 13px;
+    border-radius: 6px;
+    background: rgba(29,185,84,0.12);
+    color: var(--verde);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--gris-medio);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .close-btn:hover { background: rgba(255,255,255,0.15); color: var(--blanco); }
+
+  /* HERO */
+  .hero {
+    padding: 48px 40px 32px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .hero-text { flex: 1; }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--verde);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+
+  .hero-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 14px;
+  }
+
+  .hero-title span { color: var(--verde); }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--gris-medio);
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat { }
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--naranja);
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--gris-medio);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 600px) {
+    .header { padding: 16px 20px; }
+    .hero { padding: 28px 20px 20px; flex-direction: column; gap: 20px; }
+    .hero-title { font-size: 1.9rem; }
+    .filters { padding: 16px 20px 0; }
+    .grid { padding: 20px 20px 40px; grid-template-columns: 1fr; gap: 16px; }
+    .modal-header { flex-direction: column; padding: 24px; }
+    .modal-body { padding: 20px 24px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+        <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z" fill="#0D0D0D"/>
+        <path d="M12 7v5l3 3" stroke="#1DB954" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="1.5" fill="#1DB954"/>
+      </svg>
+    </div>
+    <div class="logo-text">Activa <span>SST</span></div>
+  </div>
+  <div class="badge-count">12 pausas oficiales</div>
+</header>
+
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-eyebrow">Biblioteca oficial</p>
+    <h1 class="hero-title">Pausas activas<br>para tu <span>equipo</span></h1>
+    <p class="hero-sub">Catálogo curado de 12 pausas activas, clasificadas por tipo de trabajo y basadas en protocolos del Ministerio de Salud y ARL colombianas.</p>
+    <div class="stats">
+      <div class="stat"><span class="stat-num">12</span><span class="stat-label">Pausas</span></div>
+      <div class="stat"><span class="stat-num">6</span><span class="stat-label">Tipos de trabajo</span></div>
+      <div class="stat"><span class="stat-num">4</span><span class="stat-label">Packs temáticos</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="filters">
+  <span class="filter-label">Filtrar:</span>
+  <button class="filter-btn active" onclick="filter('all', this)">Todos</button>
+  <button class="filter-btn" onclick="filter('oficina', this)">🖥 Oficina</button>
+  <button class="filter-btn" onclick="filter('operativo', this)">🏗 Operativo</button>
+  <button class="filter-btn" onclick="filter('bodega', this)">📦 Bodega</button>
+  <button class="filter-btn" onclick="filter('conduccion', this)">🚗 Conducción</button>
+  <button class="filter-btn" onclick="filter('ventas', this)">💼 Ventas</button>
+  <button class="filter-btn" onclick="filter('atencion_cliente', this)">🎧 Atención cliente</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <div class="modal-icon" id="modalIcon"></div>
+      <div class="modal-title-area">
+        <div class="modal-id" id="modalId"></div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-chips" id="modalChips"></div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-title">Instrucciones paso a paso</div>
+      <ul class="steps" id="modalSteps"></ul>
+      <div class="tipos-list" id="modalTipos"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PACKS = {
+  oficina_basico: { label: 'Pack Oficina', cls: 'pack-oficina' },
+  operativo_basico: { label: 'Pack Operativo', cls: 'pack-operativo' },
+  conduccion_basico: { label: 'Pack Conducción', cls: 'pack-conduccion' },
+  universal: { label: 'Universal', cls: 'pack-universal' }
+};
+
+const BG_COLORS = {
+  oficina_basico: '#0D2A27',
+  operativo_basico: '#2A1509',
+  conduccion_basico: '#2A2208',
+  universal: '#0D1F12'
+};
+
+// ─── SVG ILUSTRACIONES ───────────────────────────────────────────────────────
+// Pictogramas simples estilo sticker: figura humana + movimiento
+const SVGS = {
+
+  p01: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura humana sentada -->
+    <circle cx="60" cy="22" r="12" fill="#4ECDC4" stroke="none"/>
+    <!-- Cuerpo -->
+    <rect x="54" y="34" width="12" height="30" rx="6" fill="#4ECDC4"/>
+    <!-- Cuello inclinado derecha -->
+    <line x1="60" y1="22" x2="76" y2="16" stroke="#FFD166" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="80" cy="14" r="8" fill="none" stroke="#FFD166" stroke-width="3"/>
+    <!-- Cuello inclinado izquierda -->
+    <line x1="60" y1="22" x2="44" y2="16" stroke="#FFD166" stroke-width="4" stroke-linecap="round" stroke-dasharray="3,3"/>
+    <!-- Flecha arco -->
+    <path d="M72 10 Q60 4 48 10" fill="none" stroke="#1DB954" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <polygon points="48,6 44,12 54,11" fill="#1DB954"/>
+    <!-- Piernas -->
+    <line x1="57" y1="64" x2="52" y2="88" stroke="#4ECDC4" stroke-width="7" stroke-linecap="round"/>
+    <line x1="63" y1="64" x2="68" y2="88" stroke="#4ECDC4" stroke-width="7" stroke-linecap="round"/>
+    <!-- Texto -->
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">CUELLO</text>
+  </svg>`,
+
+  p02: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cara -->
+    <circle cx="60" cy="38" r="22" fill="#4ECDC4"/>
+    <!-- Ojos -->
+    <ellipse cx="52" cy="36" rx="5" ry="6" fill="#0D0D0D"/>
+    <ellipse cx="68" cy="36" rx="5" ry="6" fill="#0D0D0D"/>
+    <!-- Pupila mirando lejos (derecha) -->
+    <circle cx="55" cy="36" r="2.5" fill="#FFD166"/>
+    <circle cx="71" cy="36" r="2.5" fill="#FFD166"/>
+    <!-- Rayo de visión -->
+    <line x1="80" y1="36" x2="110" y2="36" stroke="#FFD166" stroke-width="2.5" stroke-dasharray="5,4"/>
+    <polygon points="108,32 116,36 108,40" fill="#FFD166"/>
+    <!-- Ondas de pantalla (izquierda) -->
+    <rect x="10" y="60" width="36" height="28" rx="4" fill="#1DB954" opacity="0.3" stroke="#1DB954" stroke-width="1.5"/>
+    <line x1="16" y1="68" x2="40" y2="68" stroke="#1DB954" stroke-width="1.5"/>
+    <line x1="16" y1="74" x2="36" y2="74" stroke="#1DB954" stroke-width="1.5"/>
+    <line x1="16" y1="80" x2="38" y2="80" stroke="#1DB954" stroke-width="1.5"/>
+    <!-- Ojo cerrado con manos (palma) -->
+    <rect x="46" y="62" width="28" height="22" rx="11" fill="#4ECDC4" opacity="0.4"/>
+    <text x="60" y="78" text-anchor="middle" fill="#4ECDC4" font-size="14">🤲</text>
+    <text x="60" y="112" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">VISUAL</text>
+  </svg>`,
+
+  p03: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura -->
+    <circle cx="60" cy="20" r="11" fill="#FF6B2B"/>
+    <rect x="54" y="31" width="12" height="28" rx="6" fill="#FF6B2B"/>
+    <!-- Brazo derecho arriba -->
+    <line x1="66" y1="38" x2="90" y2="16" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <!-- Brazo izquierdo abajo -->
+    <line x1="54" y1="38" x2="30" y2="52" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <!-- Círculo rotación hombro derecho -->
+    <circle cx="90" cy="16" r="10" fill="none" stroke="#FFD166" stroke-width="2.5" stroke-dasharray="5,4"/>
+    <polygon points="84,9 96,12 90,22" fill="#FFD166"/>
+    <!-- Ondas estiramiento -->
+    <path d="M30 52 Q22 58 28 66" fill="none" stroke="#1DB954" stroke-width="2" stroke-dasharray="3,3"/>
+    <!-- Piernas -->
+    <line x1="57" y1="59" x2="50" y2="84" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <line x1="63" y1="59" x2="70" y2="84" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">HOMBROS</text>
+  </svg>`,
+
+  p04: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Mano izquierda abierta -->
+    <rect x="8" y="40" width="44" height="50" rx="12" fill="#FFD166" opacity="0.25" stroke="#FFD166" stroke-width="1.5"/>
+    <!-- Dedos izquierda -->
+    <rect x="14" y="26" width="7" height="20" rx="3.5" fill="#FFD166"/>
+    <rect x="24" y="22" width="7" height="24" rx="3.5" fill="#FFD166"/>
+    <rect x="34" y="23" width="7" height="23" rx="3.5" fill="#FFD166"/>
+    <rect x="44" y="26" width="6" height="20" rx="3" fill="#FFD166"/>
+    <!-- Pulgar izquierda -->
+    <rect x="6" y="46" width="14" height="6" rx="3" fill="#FFD166" transform="rotate(-30, 6, 46)"/>
+
+    <!-- Mano derecha puño -->
+    <rect x="68" y="40" width="44" height="50" rx="12" fill="#4ECDC4" opacity="0.25" stroke="#4ECDC4" stroke-width="1.5"/>
+    <rect x="74" y="38" width="30" height="18" rx="6" fill="#4ECDC4"/>
+    <!-- nudillos -->
+    <circle cx="80" cy="38" r="4" fill="#4ECDC4"/>
+    <circle cx="89" cy="35" r="4" fill="#4ECDC4"/>
+    <circle cx="98" cy="37" r="4" fill="#4ECDC4"/>
+
+    <!-- Flecha rotación muñeca -->
+    <path d="M56 52 Q60 40 64 52" fill="none" stroke="#1DB954" stroke-width="3"/>
+    <polygon points="62,52 66,58 70,52" fill="#1DB954"/>
+
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">MANOS</text>
+  </svg>`,
+
+  p05: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura sentada meditando -->
+    <circle cx="60" cy="22" r="11" fill="#1DB954"/>
+    <!-- Ojos cerrados (paz) -->
+    <path d="M54 21 Q56 23 58 21" fill="none" stroke="#0D0D0D" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M62 21 Q64 23 66 21" fill="none" stroke="#0D0D0D" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Sonrisa -->
+    <path d="M55 26 Q60 30 65 26" fill="none" stroke="#0D0D0D" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Cuerpo sentado -->
+    <ellipse cx="60" cy="62" rx="26" ry="16" fill="#1DB954" opacity="0.3" stroke="#1DB954" stroke-width="1.5"/>
+    <!-- Brazos sobre rodillas -->
+    <line x1="48" y1="42" x2="38" y2="58" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <line x1="72" y1="42" x2="82" y2="58" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <!-- Ondas de respiración -->
+    <path d="M32 36 Q36 28 40 36 Q44 44 48 36" fill="none" stroke="#FFD166" stroke-width="2" opacity="0.7"/>
+    <path d="M72 32 Q76 24 80 32 Q84 40 88 32" fill="none" stroke="#FFD166" stroke-width="2" opacity="0.5"/>
+    <!-- Corazón mental -->
+    <path d="M55 8 Q60 4 65 8 Q70 12 60 18 Q50 12 55 8" fill="#FF6B2B" opacity="0.8"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">MENTAL</text>
+  </svg>`,
+
+  p06: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura de pie inclinada -->
+    <circle cx="60" cy="16" r="11" fill="#FF6B2B"/>
+    <!-- Espalda arqueada (doblegada) -->
+    <path d="M60 27 Q58 50 55 64" stroke="#FF6B2B" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <!-- Brazos al frente entrelazados -->
+    <path d="M55 40 Q40 44 34 52" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M55 40 Q36 38 30 48" stroke="#FF6B2B" stroke-width="5" stroke-linecap="round" fill="none" stroke-dasharray="3,2"/>
+    <!-- Cadera hacia adelante (flecha) -->
+    <path d="M55 56 L44 56" stroke="#FFD166" stroke-width="2.5"/>
+    <polygon points="44,52 36,56 44,60" fill="#FFD166"/>
+    <!-- Piernas -->
+    <line x1="55" y1="64" x2="50" y2="88" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <line x1="57" y1="64" x2="62" y2="88" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <!-- Ondas tensión -->
+    <path d="M56 42 Q60 38 64 42 Q68 46 72 42" fill="none" stroke="#1DB954" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">ESPALDA BAJA</text>
+  </svg>`,
+
+  p07: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura levantando rodilla -->
+    <circle cx="60" cy="16" r="11" fill="#FFD166"/>
+    <rect x="54" y="27" width="12" height="30" rx="6" fill="#FFD166"/>
+    <!-- Brazos equilibrio -->
+    <line x1="54" y1="36" x2="28" y2="44" stroke="#FFD166" stroke-width="7" stroke-linecap="round"/>
+    <line x1="66" y1="36" x2="92" y2="44" stroke="#FFD166" stroke-width="7" stroke-linecap="round"/>
+    <!-- Pierna de apoyo -->
+    <line x1="57" y1="57" x2="54" y2="90" stroke="#FFD166" stroke-width="7" stroke-linecap="round"/>
+    <!-- Pierna levantada (rodilla al pecho) -->
+    <path d="M63 57 Q78 57 80 72 Q82 80 70 84" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <!-- Círculo tobillo -->
+    <circle cx="54" cy="90" r="6" fill="none" stroke="#1DB954" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <polygon points="50,85 58,82 58,90" fill="#1DB954"/>
+    <!-- Flecha hacia arriba -->
+    <path d="M86 34 L86 18" stroke="#4ECDC4" stroke-width="2.5"/>
+    <polygon points="82,20 86,12 90,20" fill="#4ECDC4"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">PIERNAS</text>
+  </svg>`,
+
+  p08: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura en estocada -->
+    <circle cx="52" cy="16" r="11" fill="#4ECDC4"/>
+    <rect x="46" y="27" width="12" height="22" rx="6" fill="#4ECDC4"/>
+    <!-- Brazo apoyo (pared invisible) -->
+    <line x1="46" y1="34" x2="26" y2="34" stroke="#4ECDC4" stroke-width="6" stroke-linecap="round"/>
+    <!-- Pierna delantera doblada -->
+    <path d="M52 49 L60 72 L52 90" stroke="#4ECDC4" stroke-width="7" stroke-linecap="round" fill="none" stroke-linejoin="round"/>
+    <!-- Pierna trasera extendida -->
+    <path d="M52 49 L38 68 L30 90" stroke="#4ECDC4" stroke-width="7" stroke-linecap="round" fill="none" stroke-linejoin="round"/>
+    <!-- Ángulo 90° -->
+    <text x="64" y="76" fill="#FFD166" font-size="9" font-family="monospace">90°</text>
+    <!-- Flecha estiramiento pantorrilla -->
+    <path d="M30 90 L30 78" stroke="#FF6B2B" stroke-width="2"/>
+    <path d="M30 90 L30 102" stroke="#FF6B2B" stroke-width="2"/>
+    <line x1="26" y1="90" x2="34" y2="90" stroke="#FF6B2B" stroke-width="2"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">PIERNAS</text>
+  </svg>`,
+
+  p09: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura de pie con brazos al remo -->
+    <circle cx="60" cy="16" r="11" fill="#FF6B2B"/>
+    <rect x="54" y="27" width="12" height="28" rx="6" fill="#FF6B2B"/>
+    <!-- Brazo izquierdo extendido -->
+    <line x1="54" y1="34" x2="18" y2="50" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <!-- Brazo derecho extendido -->
+    <line x1="66" y1="34" x2="102" y2="50" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <!-- Flecha remo izquierda -->
+    <path d="M18 50 Q30 42 40 50" fill="none" stroke="#FFD166" stroke-width="2.5"/>
+    <polygon points="37,46 44,52 38,56" fill="#FFD166"/>
+    <!-- Flecha remo derecha -->
+    <path d="M102 50 Q90 42 80 50" fill="none" stroke="#FFD166" stroke-width="2.5"/>
+    <polygon points="83,46 76,52 82,56" fill="#FFD166"/>
+    <!-- Hombros marcados -->
+    <circle cx="50" cy="30" r="6" fill="none" stroke="#1DB954" stroke-width="2.5"/>
+    <circle cx="70" cy="30" r="6" fill="none" stroke="#1DB954" stroke-width="2.5"/>
+    <!-- Piernas -->
+    <line x1="57" y1="55" x2="50" y2="84" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <line x1="63" y1="55" x2="70" y2="84" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">HOMBROS</text>
+  </svg>`,
+
+  p10: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Auto simplificado -->
+    <rect x="10" y="64" width="100" height="34" rx="8" fill="#2A2A2A" stroke="#FFD166" stroke-width="2"/>
+    <rect x="24" y="48" width="72" height="24" rx="8" fill="#2A2A2A" stroke="#FFD166" stroke-width="1.5"/>
+    <!-- Ruedas -->
+    <circle cx="30" cy="98" r="10" fill="#0D0D0D" stroke="#888" stroke-width="2"/>
+    <circle cx="90" cy="98" r="10" fill="#0D0D0D" stroke="#888" stroke-width="2"/>
+    <!-- Figura fuera del auto -->
+    <circle cx="104" cy="28" r="10" fill="#FFD166"/>
+    <!-- Cuerpo de pie -->
+    <rect x="99" y="38" width="10" height="22" rx="5" fill="#FFD166"/>
+    <!-- Brazos arriba (estiramiento) -->
+    <line x1="99" y1="44" x2="90" y2="28" stroke="#FFD166" stroke-width="6" stroke-linecap="round"/>
+    <line x1="109" y1="44" x2="118" y2="28" stroke="#FFD166" stroke-width="6" stroke-linecap="round"/>
+    <!-- Piernas -->
+    <line x1="101" y1="60" x2="97" y2="82" stroke="#FFD166" stroke-width="6" stroke-linecap="round"/>
+    <line x1="107" y1="60" x2="111" y2="82" stroke="#FFD166" stroke-width="6" stroke-linecap="round"/>
+    <!-- Señal de parada -->
+    <polygon points="56,12 64,12 68,20 64,28 56,28 52,20" fill="#FF6B2B" opacity="0.9"/>
+    <text x="60" y="24" text-anchor="middle" fill="white" font-size="9" font-weight="bold">🛑</text>
+    <text x="60" y="112" text-anchor="middle" fill="#888" font-size="7.5" font-family="monospace">CONDUCTOR</text>
+  </svg>`,
+
+  p11: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sol de energía -->
+    <circle cx="60" cy="22" r="14" fill="#FFD166" opacity="0.9"/>
+    <!-- Rayos -->
+    <line x1="60" y1="4" x2="60" y2="0" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="78" y1="10" x2="80" y2="7" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="42" y1="10" x2="40" y2="7" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Figura con brazos en X (calentamiento) -->
+    <circle cx="60" cy="52" r="10" fill="#1DB954"/>
+    <rect x="55" y="62" width="10" height="24" rx="5" fill="#1DB954"/>
+    <!-- Brazo derecho arriba derecha -->
+    <line x1="65" y1="58" x2="88" y2="40" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <!-- Brazo izquierdo arriba izquierda -->
+    <line x1="55" y1="58" x2="32" y2="40" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <!-- Piernas separadas (posición de inicio) -->
+    <line x1="57" y1="86" x2="46" y2="108" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <line x1="63" y1="86" x2="74" y2="108" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <!-- Círculos de energía -->
+    <circle cx="60" cy="52" r="20" fill="none" stroke="#FFD166" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.5"/>
+    <circle cx="60" cy="52" r="32" fill="none" stroke="#FFD166" stroke-width="1" stroke-dasharray="3,6" opacity="0.25"/>
+    <text x="60" y="120" text-anchor="middle" fill="#888" font-size="7.5" font-family="monospace">CALENTAMIENTO</text>
+  </svg>`,
+
+  p12: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Silla -->
+    <rect x="30" y="68" width="44" height="6" rx="3" fill="#2A2A2A" stroke="#888" stroke-width="1.5"/>
+    <rect x="68" y="52" width="6" height="22" rx="3" fill="#2A2A2A" stroke="#888" stroke-width="1.5"/>
+    <line x1="32" y1="74" x2="28" y2="96" stroke="#888" stroke-width="3" stroke-linecap="round"/>
+    <line x1="72" y1="74" x2="76" y2="96" stroke="#888" stroke-width="3" stroke-linecap="round"/>
+    <!-- Figura levantándose -->
+    <circle cx="80" cy="34" r="10" fill="#FF6B2B"/>
+    <path d="M80 44 Q78 58 76 70" stroke="#FF6B2B" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <!-- Brazos levantados con movimiento -->
+    <line x1="76" y1="52" x2="58" y2="44" stroke="#FF6B2B" stroke-width="6" stroke-linecap="round"/>
+    <line x1="78" y1="52" x2="96" y2="36" stroke="#FF6B2B" stroke-width="6" stroke-linecap="round"/>
+    <!-- Flecha de levantarse -->
+    <path d="M60 66 L60 42" stroke="#1DB954" stroke-width="3"/>
+    <polygon points="56,46 60,36 64,46" fill="#1DB954"/>
+    <!-- Pasos de caminar -->
+    <ellipse cx="26" cy="94" rx="8" ry="4" fill="#FFD166" opacity="0.6"/>
+    <ellipse cx="44" cy="98" rx="8" ry="4" fill="#FFD166" opacity="0.4"/>
+    <!-- Reloj 2h -->
+    <circle cx="104" cy="16" r="12" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+    <line x1="104" y1="10" x2="104" y2="16" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+    <line x1="104" y1="16" x2="110" y2="16" stroke="#4ECDC4" stroke-width="2" stroke-linecap="round"/>
+    <text x="60" y="115" text-anchor="middle" fill="#888" font-size="7.5" font-family="monospace">ANTIESTÁTICA</text>
+  </svg>`
+};
+
+// ─── DATOS ───────────────────────────────────────────────────────────────────
+const pausas = [
+  {
+    id: 'P01', titulo: 'Movilidad de Cuello', duracion: 5,
+    pack: 'oficina_basico', svg: 'p01',
+    tipos: ['oficina','ventas','atencion_cliente'],
+    pasos: [
+      { txt: 'Ponte de pie o siéntate con la espalda recta y los hombros relajados.', tipo: 'normal' },
+      { txt: 'Inclina la cabeza hacia la derecha llevando la oreja al hombro. Sostén 8 segundos. Regresa al centro.', tipo: 'normal' },
+      { txt: 'Repite hacia el lado izquierdo. Sostén 8 segundos.', tipo: 'normal' },
+      { txt: 'Lleva el mentón hacia el pecho suavemente. Sostén 5 segundos. Regresa.', tipo: 'normal' },
+      { txt: 'Gira la cabeza hacia la derecha como si miraras por encima del hombro. Sostén 5 segundos.', tipo: 'normal' },
+      { txt: 'Repite hacia el lado izquierdo. Sostén 5 segundos.', tipo: 'normal' },
+      { txt: 'Realiza 3 repeticiones completas de la secuencia. Respira profundo entre cada movimiento.', tipo: 'normal' },
+      { txt: '⚠️ Si tienes problema articular en el cuello, realiza los movimientos con precaución o evítalos.', tipo: 'warning' }
+    ]
+  },
+  {
+    id: 'P02', titulo: 'Relajación Visual 20-20-20', duracion: 5,
+    pack: 'oficina_basico', svg: 'p02',
+    tipos: ['oficina','ventas','atencion_cliente'],
+    pasos: [
+      { txt: 'Aleja la vista de la pantalla.', tipo: 'normal' },
+      { txt: 'Busca un punto lejano a más de 6 metros de distancia (una ventana, la pared del fondo).', tipo: 'normal' },
+      { txt: 'Enfoca ese punto durante 20 segundos. Parpadea normalmente.', tipo: 'normal' },
+      { txt: 'Cierra los ojos suavemente y cúbrelos con las palmas sin hacer presión. Mantén 10 segundos.', tipo: 'normal' },
+      { txt: 'Abre los ojos ampliamente y luego ciérralos con fuerza. Repite 5 veces.', tipo: 'normal' },
+      { txt: 'Mueve los ojos de lado a lado (derecha-izquierda) 5 veces lentamente, sin mover la cabeza.', tipo: 'normal' },
+      { txt: 'Mueve los ojos arriba-abajo 5 veces lentamente.', tipo: 'normal' },
+      { txt: 'Realiza 3 círculos con los ojos en cada dirección.', tipo: 'normal' },
+      { txt: '💡 Aplica la regla 20-20-20: cada 20 min de pantalla, mira 20 seg a 6 metros.', tipo: 'tip' }
+    ]
+  },
+  {
+    id: 'P03', titulo: 'Estiramiento de Hombros y Brazos', duracion: 5,
+    pack: 'oficina_basico', svg: 'p03',
+    tipos: ['oficina','ventas','atencion_cliente','bodega'],
+    pasos: [
+      { txt: 'De pie, eleva ambos hombros hacia las orejas. Sostén 5 segundos. Bájalos con fuerza. Repite 5 veces.', tipo: 'normal' },
+      { txt: 'Rotaciones de hombros hacia adelante: 5 círculos grandes y lentos.', tipo: 'normal' },
+      { txt: 'Repite las rotaciones hacia atrás: 5 círculos grandes y lentos.', tipo: 'normal' },
+      { txt: 'Lleva el brazo derecho por encima de la cabeza con el codo doblado. Con la mano izquierda empuja el codo suavemente hacia atrás. Sostén 10 segundos. Cambia de lado.', tipo: 'normal' },
+      { txt: 'Lleva el brazo derecho extendido al frente a la altura del hombro. Con la mano izquierda jala el brazo hacia el pecho. Sostén 10 segundos. Cambia de lado.', tipo: 'normal' },
+      { txt: 'Entrelaza los dedos, estira los brazos al frente con las palmas hacia afuera. Sostén 8 segundos. Relaja.', tipo: 'normal' }
+    ]
+  },
+  {
+    id: 'P04', titulo: 'Ejercicios de Manos y Muñecas', duracion: 5,
+    pack: 'oficina_basico', svg: 'p04',
+    tipos: ['oficina','ventas','atencion_cliente'],
+    pasos: [
+      { txt: 'Abre las manos completamente, separa todos los dedos. Cierra en puño. Repite 5 veces.', tipo: 'normal' },
+      { txt: 'Con el puño cerrado, mueve las muñecas hacia arriba y hacia abajo. 5 repeticiones.', tipo: 'normal' },
+      { txt: 'Rotaciones de muñeca: 5 círculos hacia la derecha y 5 hacia la izquierda con cada mano.', tipo: 'normal' },
+      { txt: 'Extiende el brazo al frente con la palma hacia afuera. Con la otra mano jala los dedos hacia atrás. Sostén 8 segundos. Cambia de mano.', tipo: 'normal' },
+      { txt: 'Lleva el pulgar a tocar cada uno de los otros dedos en secuencia: índice, medio, anular, meñique. Repite 4 veces con cada mano.', tipo: 'normal' },
+      { txt: 'Sacude las manos suavemente durante 10 segundos para relajar los músculos.', tipo: 'normal' },
+      { txt: '⚠️ Si realizas trabajo de digitación intensivo, haz esta pausa cada 60 minutos.', tipo: 'warning' }
+    ]
+  },
+  {
+    id: 'P05', titulo: 'Pausa Mental y Respiración', duracion: 5,
+    pack: 'oficina_basico', svg: 'p05',
+    tipos: ['oficina','ventas','atencion_cliente'],
+    pasos: [
+      { txt: 'Siéntate o párate con la espalda recta. Cierra los ojos si puedes.', tipo: 'normal' },
+      { txt: 'Inhala profundamente por la nariz contando hasta 4. Siente cómo el abdomen se expande.', tipo: 'normal' },
+      { txt: 'Sostén el aire 2 segundos.', tipo: 'normal' },
+      { txt: 'Exhala lentamente por la boca contando hasta 6, como si soplaras una vela a lo lejos.', tipo: 'normal' },
+      { txt: 'Repite el ciclo de respiración 5 veces.', tipo: 'normal' },
+      { txt: 'Abre los ojos lentamente. Mueve el cuello suavemente de lado a lado 3 veces.', tipo: 'normal' },
+      { txt: 'Estira los brazos al techo, empínate en puntas de pies y bosteza fuerte si sientes la necesidad.', tipo: 'normal' },
+      { txt: '💡 Esta pausa ayuda a reducir el estrés y mejorar la concentración después de tareas intensas.', tipo: 'tip' }
+    ]
+  },
+  {
+    id: 'P06', titulo: 'Estiramiento de Espalda Baja', duracion: 5,
+    pack: 'operativo_basico', svg: 'p06',
+    tipos: ['operativo','bodega','conduccion'],
+    pasos: [
+      { txt: 'De pie con los pies separados al ancho de los hombros y rodillas levemente dobladas.', tipo: 'normal' },
+      { txt: 'Entrelaza los dedos y estira los brazos al frente. Lleva la cadera hacia adelante arqueando suavemente la espalda. Sostén 10 segundos. Relaja.', tipo: 'normal' },
+      { txt: 'Manos en la cintura, realiza 5 rotaciones de cadera lentas hacia la derecha, luego 5 hacia la izquierda. Mantén el tronco recto.', tipo: 'normal' },
+      { txt: 'Con las manos en las rodillas, dobla levemente el tronco hacia adelante y redondea la espalda como un arco. Sostén 8 segundos. Vuelve a posición recta.', tipo: 'normal' },
+      { txt: 'Párate derecho y lleva una rodilla al pecho con las manos. Sostén 8 segundos. Cambia de pierna.', tipo: 'normal' },
+      { txt: 'Repite 2 veces toda la secuencia. Respira durante cada movimiento.', tipo: 'normal' },
+      { txt: '⚠️ No hagas este estiramiento si tienes dolor lumbar agudo. Consulta con tu médico.', tipo: 'warning' }
+    ]
+  },
+  {
+    id: 'P07', titulo: 'Activación de Piernas y Tobillos', duracion: 5,
+    pack: 'operativo_basico', svg: 'p07',
+    tipos: ['operativo','bodega','conduccion'],
+    pasos: [
+      { txt: 'De pie, apóyate en una superficie si necesitas equilibrio.', tipo: 'normal' },
+      { txt: 'Levanta los talones del piso 10 veces (elevaciones de pantorrilla). Hazlo lento y controlado.', tipo: 'normal' },
+      { txt: 'Camina en el puesto alternando puntas de pie y talones durante 20 segundos.', tipo: 'normal' },
+      { txt: 'Levanta una rodilla al frente (cadera a 90°) y balancéala hacia atrás. Alterna con la otra pierna: 5 repeticiones por lado.', tipo: 'normal' },
+      { txt: 'Sin apoyar el pie en el piso, realiza 3 rotaciones de tobillo hacia la izquierda y 3 hacia la derecha con cada pie.', tipo: 'normal' },
+      { txt: 'Con la espalda recta, haz sentadillas superficiales (45°): baja y sube lentamente. 7 repeticiones.', tipo: 'normal' },
+      { txt: '💡 Ideal para quienes trabajan de pie por tiempo prolongado.', tipo: 'tip' }
+    ]
+  },
+  {
+    id: 'P08', titulo: 'Estiramiento de Piernas', duracion: 5,
+    pack: 'operativo_basico', svg: 'p08',
+    tipos: ['operativo','bodega','conduccion'],
+    pasos: [
+      { txt: 'De pie cerca de una pared para apoyo si lo necesitas.', tipo: 'normal' },
+      { txt: 'Dobla la rodilla derecha y toma el tobillo por detrás. Jala el pie hacia los glúteos. Sostén 10 segundos. Cambia de pierna.', tipo: 'normal' },
+      { txt: 'Da un paso largo hacia adelante con la pierna derecha. Dobla la rodilla delantera a 90°. La rodilla trasera apunta hacia el piso. Sostén 8 segundos. Cambia de lado. (Estocada estática)', tipo: 'normal' },
+      { txt: 'Apoya el talón derecho en el suelo con la rodilla extendida. Inclínate levemente hacia adelante con la espalda recta hasta sentir la tensión en la pantorrilla. Sostén 10 segundos. Cambia de pierna.', tipo: 'normal' },
+      { txt: 'Realiza 5 pasadas laterales: desliza el cuerpo hacia la derecha doblando esa rodilla mientras la pierna izquierda se estira. Sostén 5 segundos y cambia.', tipo: 'normal' }
+    ]
+  },
+  {
+    id: 'P09', titulo: 'Fortalecimiento Hombros y Espalda Alta', duracion: 5,
+    pack: 'operativo_basico', svg: 'p09',
+    tipos: ['operativo','bodega'],
+    pasos: [
+      { txt: 'De pie con los brazos a los lados, sube los hombros hacia las orejas. Sostén 10 segundos con tensión. Bájalos y sostén 10 segundos más abajo. Relaja. Repite 3 veces.', tipo: 'normal' },
+      { txt: 'Lleva las manos a los hombros. Con los codos dibuja 5 círculos grandes hacia adelante y 5 hacia atrás.', tipo: 'normal' },
+      { txt: 'Extiende los brazos al frente a la altura del hombro. Cierra los puños y flexiona los codos llevando las manos al pecho (remo). Extiende de nuevo. 8 repeticiones.', tipo: 'normal' },
+      { txt: 'Con los brazos cruzados al frente y puños cerrados, llévalos hacia atrás y abajo abriendo las manos con las palmas hacia afuera. Repite 5 veces.', tipo: 'normal' },
+      { txt: 'Lleva los brazos a la espalda, entrelaza los dedos y estira llevando los brazos hacia atrás y arriba. Sostén 8 segundos. Relaja.', tipo: 'normal' }
+    ]
+  },
+  {
+    id: 'P10', titulo: 'Pausa del Conductor', duracion: 10,
+    pack: 'conduccion_basico', svg: 'p10',
+    tipos: ['conduccion'],
+    pasos: [
+      { txt: '🛑 Detén el vehículo en un lugar seguro antes de iniciar.', tipo: 'warning' },
+      { txt: 'Sal del vehículo. De pie, realiza 5 respiraciones profundas estirando los brazos al techo.', tipo: 'normal' },
+      { txt: 'Gira la cabeza hacia la derecha y hacia la izquierda lentamente. 5 veces por lado.', tipo: 'normal' },
+      { txt: 'Pon las manos en la cintura y rota la cadera en círculos: 5 veces a cada lado.', tipo: 'normal' },
+      { txt: 'Haz sentadillas superficiales con la espalda recta: 10 repeticiones lentas.', tipo: 'normal' },
+      { txt: 'Apoya la mano en el vehículo. Dobla una rodilla y jala el tobillo hacia los glúteos. Sostén 10 segundos por pierna.', tipo: 'normal' },
+      { txt: 'Estira los brazos al frente entrelazando los dedos. Lleva la cadera hacia adelante arqueando la espalda. Sostén 10 segundos.', tipo: 'normal' },
+      { txt: 'Camina al rededor del vehículo durante 2 minutos antes de retomar la conducción.', tipo: 'normal' },
+      { txt: '✅ Realiza esta pausa cada 2 horas de conducción continua. Es obligatoria por normativa de SST.', tipo: 'tip' }
+    ]
+  },
+  {
+    id: 'P11', titulo: 'Calentamiento General — Inicio de Jornada', duracion: 10,
+    pack: 'universal', svg: 'p11',
+    tipos: ['oficina','operativo','conduccion','bodega','ventas','atencion_cliente'],
+    pasos: [
+      { txt: 'De pie con los pies separados al ancho de hombros. Realiza 3 respiraciones profundas para activar.', tipo: 'normal' },
+      { txt: 'Cuello: Gira la cabeza en semicírculo de derecha a izquierda (solo por el frente). 5 repeticiones.', tipo: 'normal' },
+      { txt: 'Hombros: Rotaciones alternas hacia adelante y hacia atrás. 5 repeticiones cada dirección.', tipo: 'normal' },
+      { txt: 'Codos: Con las manos en los hombros, dibuja 5 círculos adelante y 5 atrás con los codos.', tipo: 'normal' },
+      { txt: 'Cadera: Manos en la cintura, rotaciones de cadera. 5 veces a cada lado.', tipo: 'normal' },
+      { txt: 'Rodillas: Con las manos en las rodillas, dóblalas levemente y realiza pequeñas rotaciones. 5 veces.', tipo: 'normal' },
+      { txt: 'Tobillos: Levanta un pie y rota el tobillo 3 veces a cada lado. Cambia de pie.', tipo: 'normal' },
+      { txt: 'Activación final: Camina en el puesto levantando las rodillas durante 20 segundos.', tipo: 'normal' },
+      { txt: '💡 Esta rutina completa prepara el cuerpo para la jornada y reduce lesiones desde el primer momento.', tipo: 'tip' }
+    ]
+  },
+  {
+    id: 'P12', titulo: 'Levántate y Muévete — Antiestática', duracion: 5,
+    pack: 'universal', svg: 'p12',
+    tipos: ['oficina','ventas','atencion_cliente'],
+    pasos: [
+      { txt: 'Levántate de la silla. De pie junto a tu puesto.', tipo: 'normal' },
+      { txt: 'Estira todo el cuerpo: entrelaza los dedos, sube los brazos al techo y empínate en puntas de pie. Sostén 8 segundos. Repite 2 veces.', tipo: 'normal' },
+      { txt: 'Camina al menos 50 pasos (ve al baño, al comedor, o simplemente da una vuelta).', tipo: 'normal' },
+      { txt: 'Al regresar, de pie, haz 10 elevaciones de talones lentas.', tipo: 'normal' },
+      { txt: 'Realiza 5 sentadillas suaves (hasta 45°) con la espalda recta antes de volver a sentarte.', tipo: 'normal' },
+      { txt: 'Antes de sentarte, ajusta la postura: espalda recta apoyada en el espaldar, pies bien apoyados en el piso, pantalla a la altura de los ojos.', tipo: 'normal' },
+      { txt: '⏰ Realiza esta pausa cada 2 horas si tu trabajo es sedentario.', tipo: 'warning' }
+    ]
+  }
+];
+
+// ─── RENDER GRID ─────────────────────────────────────────────────────────────
+function renderGrid(filtro) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  pausas.forEach((p, i) => {
+    const visible = filtro === 'all' || p.tipos.includes(filtro);
+    const packInfo = PACKS[p.pack];
+    const bg = BG_COLORS[p.pack];
+
+    const card = document.createElement('div');
+    card.className = 'card' + (visible ? '' : ' hidden');
+    card.style.animationDelay = `${i * 0.04}s`;
+    card.onclick = () => openModal(p);
+
+    card.innerHTML = `
+      <div class="card-img" style="background:${bg}">
+        ${SVGS[p.svg]}
+        <span class="card-arrow">→</span>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="card-id">${p.id}</span>
+          <span class="card-duration">⏱ ${p.duracion} min</span>
+          <span class="card-pack ${packInfo.cls}">${packInfo.label}</span>
+        </div>
+        <div class="card-title">${p.titulo}</div>
+        <div class="tags">
+          ${p.tipos.map(t => `<span class="tag">${t.replace('_',' ')}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function filter(tipo, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+
+  pausas.forEach((p, i) => {
+    const visible = tipo === 'all' || p.tipos.includes(tipo);
+    const cards = document.querySelectorAll('.card');
+    if (visible) cards[i].classList.remove('hidden');
+  });
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(p) {
+  const packInfo = PACKS[p.pack];
+  const bg = BG_COLORS[p.pack];
+
+  document.getElementById('modalId').textContent = p.id + ' · ' + packInfo.label;
+  document.getElementById('modalTitle').textContent = p.titulo;
+  document.getElementById('modalIcon').style.background = bg;
+  document.getElementById('modalIcon').innerHTML = SVGS[p.svg];
+
+  document.getElementById('modalChips').innerHTML = `
+    <span class="chip chip-dur">⏱ ${p.duracion} minutos</span>
+    <span class="chip card-pack ${packInfo.cls}">${packInfo.label}</span>
+  `;
+
+  const stepsEl = document.getElementById('modalSteps');
+  stepsEl.innerHTML = p.pasos.map((s, i) => `
+    <li class="step ${s.tipo === 'warning' ? 'step-warning' : s.tipo === 'tip' ? 'step-tip' : ''}">
+      <span class="step-num">${s.tipo === 'normal' ? (i+1) : s.tipo === 'warning' ? '!' : '💡'}</span>
+      <span>${s.txt}</span>
+    </li>
+  `).join('');
+
+  document.getElementById('modalTipos').innerHTML =
+    p.tipos.map(t => `<span class="tipo-chip">${t.replace('_',' ')}</span>`).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay') && e.type !== 'click') return;
+  if (e && e.currentTarget === document.getElementById('modal')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('modal').onclick = e => e.stopPropagation();
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal({}); });
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderGrid('all');
+</script>
+</body>
+</html>

@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrabajadorRouteImport } from './routes/trabajador'
 import { Route as PrevencionistaRouteImport } from './routes/prevencionista'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -24,6 +26,11 @@ const TrabajadorRoute = TrabajadorRouteImport.update({
 const PrevencionistaRoute = PrevencionistaRouteImport.update({
   id: '/prevencionista',
   path: '/prevencionista',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MagicLinkRoute = MagicLinkRouteImport.update({
@@ -46,22 +53,32 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrevencionistaTrabajadoresRoute =
+  PrevencionistaTrabajadoresRouteImport.update({
+    id: '/trabajadores',
+    path: '/trabajadores',
+    getParentRoute: () => PrevencionistaRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
-  '/prevencionista': typeof PrevencionistaRoute
+  '/onboarding': typeof OnboardingRoute
+  '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
+  '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
-  '/prevencionista': typeof PrevencionistaRoute
+  '/onboarding': typeof OnboardingRoute
+  '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
+  '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +86,10 @@ export interface FileRoutesById {
   '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
-  '/prevencionista': typeof PrevencionistaRoute
+  '/onboarding': typeof OnboardingRoute
+  '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
+  '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +98,30 @@ export interface FileRouteTypes {
     | '/diagnostico'
     | '/login'
     | '/magic-link'
+    | '/onboarding'
     | '/prevencionista'
     | '/trabajador'
+    | '/prevencionista/trabajadores'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/diagnostico'
     | '/login'
     | '/magic-link'
+    | '/onboarding'
     | '/prevencionista'
     | '/trabajador'
+    | '/prevencionista/trabajadores'
   id:
     | '__root__'
     | '/'
     | '/diagnostico'
     | '/login'
     | '/magic-link'
+    | '/onboarding'
     | '/prevencionista'
     | '/trabajador'
+    | '/prevencionista/trabajadores'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,7 +129,8 @@ export interface RootRouteChildren {
   DiagnosticoRoute: typeof DiagnosticoRoute
   LoginRoute: typeof LoginRoute
   MagicLinkRoute: typeof MagicLinkRoute
-  PrevencionistaRoute: typeof PrevencionistaRoute
+  OnboardingRoute: typeof OnboardingRoute
+  PrevencionistaRoute: typeof PrevencionistaRouteWithChildren
   TrabajadorRoute: typeof TrabajadorRoute
 }
 
@@ -122,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/prevencionista'
       fullPath: '/prevencionista'
       preLoaderRoute: typeof PrevencionistaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/magic-link': {
@@ -152,17 +185,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prevencionista/trabajadores': {
+      id: '/prevencionista/trabajadores'
+      path: '/trabajadores'
+      fullPath: '/prevencionista/trabajadores'
+      preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
+      parentRoute: typeof PrevencionistaRoute
+    }
   }
 }
+
+interface PrevencionistaRouteChildren {
+  PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
+}
+
+const PrevencionistaRouteChildren: PrevencionistaRouteChildren = {
+  PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
+}
+
+const PrevencionistaRouteWithChildren = PrevencionistaRoute._addFileChildren(
+  PrevencionistaRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiagnosticoRoute: DiagnosticoRoute,
   LoginRoute: LoginRoute,
   MagicLinkRoute: MagicLinkRoute,
-  PrevencionistaRoute: PrevencionistaRoute,
+  OnboardingRoute: OnboardingRoute,
+  PrevencionistaRoute: PrevencionistaRouteWithChildren,
   TrabajadorRoute: TrabajadorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

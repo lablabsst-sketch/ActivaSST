@@ -30,6 +30,8 @@ Convenciones:
 - [x] **T013** Migración `0004_push_y_consent.sql`: tablas `push_subscriptions` (con enum `web|fcm`), `consentimientos`.
 - [x] **T014** Migración `0005_rls.sql`: RLS habilitada y políticas por rol en todas las tablas + Storage policies para `pausas-media`.
 - [x] **T015** Migración `0006_audit.sql`: trigger bloqueando UPDATE/DELETE en `pausa_registros` + stamp server-side de `respondido_en`.
+- [x] **T015b** Migración `0007_pausas_oficiales.sql`: catálogo 12 pausas oficiales + N:M con tipos_trabajo + RLS read-only authenticated. Aplicada 2026-06-01 (12 pausas + 37 relaciones).
+- [x] **T015c** Migración `0008_planes_y_whitelist.sql`: enum `estado_usuario`, `usuarios.estado`, `planes` (seed 5 tiers), `empresas.plan_id`+`logo_url`, trigger `check_plan_limit`, función `email_is_whitelisted` + trigger `enforce_email_whitelist` en `auth.users`. **Pendiente aplicar en Lovable Cloud.**
 - [ ] **T016** [P] `src/lib/supabase.ts`: cliente tipado con `Database` types generados (`supabase gen types`).
 - [ ] **T017** Rutas auth: `/login`, `/magic-link` con Supabase Auth (`signInWithOtp`). Layout `(auth)` shadcn.
 - [ ] **T018** Hook `useSession()` + guard de rutas. Redirección por rol al loguearse: prevencionista → `/prevencionista`, trabajador → `/trabajador`.
@@ -70,18 +72,31 @@ Convenciones:
 - [ ] **T053** Policy Storage: lectura permitida a trabajadores de la misma empresa que tengan al menos un registro o programación pendiente referenciando esa pausa.
 - [ ] **T054** [P] Seed `seed.sql` con 8 pausas precargadas (2 por tipo de trabajo principal) para que el MVP arranque con biblioteca útil.
 
-## Phase 6 — User Story 4: Reportes (P2)
+## Phase 6 — User Story 4: Reportes (P1, ascendido)
 
-- [ ] **T060** Página `/prevencionista/reportes`: filtros (rango fechas, trabajadores opcional). Vista summary: total, % hecha, % rechazada (top motivos), % vencida.
+- [ ] **T060** Página `/prevencionista/reportes`: filtros (mes/rango fechas, trabajadores opcional). Vista summary: total, % hecha, % rechazada (top motivos), % vencida.
 - [ ] **T061** Vista detalle: tabla paginada de registros con join a pausa y trabajador.
-- [ ] **T062** Export CSV: cliente arma el CSV desde la query (≤ 5000 filas) o llama función `export-csv` para volúmenes mayores.
+- [ ] **T062** Export CSV: cliente arma el CSV desde la query (≤ 5000 filas) o llama función `export-csv` para volúmenes mayores. Columnas: fecha, cédula, nombre, tipo_trabajo, pausa, estado, respondido_en, motivo.
 - [ ] **T063** [P] Tests unitarios de agregaciones en `tests/unit/reportes.spec.ts`.
+- [ ] **T064** Instalar `jspdf` + `jspdf-autotable`. Componente `ReportePDF.tsx` que genera A4 con: cabecera (logo `empresas.logo_url` + nombre + NIT + mes + leyenda "Evidencia de cumplimiento de pausas activas — Resolución 0312 de 2019 SST"), tabla resumen, tabla detallada por trabajador+pausa, pie con timestamp + nombre del prevencionista emisor.
+- [ ] **T065** Subida de logo de empresa (`/prevencionista/empresa/ajustes`): input file → bucket `empresa-assets/logos/{empresa_id}.png` → update `empresas.logo_url`.
+- [ ] **T066** Botón "Descargar PDF mensual" en `/prevencionista/reportes` con selector de mes. Maneja caso "sin actividad" con leyenda explícita.
 
-## Phase 7 — User Story 5: Importar trabajadores (P2)
+## Phase 7 — User Story 5 + 8: Alta de trabajadores, planes y whitelist (P1, ascendido)
 
-- [ ] **T070** Página `/prevencionista/trabajadores/importar`: dropzone CSV, vista previa con validación zod, conteo de duplicados.
-- [ ] **T071** Edge Function `import-workers`: upsert idempotente por `(empresa_id, documento)`; envía magic link a nuevos vía Supabase Auth Admin.
-- [ ] **T072** UI de resultado: creados / actualizados / omitidos con motivos.
+- [ ] **T070** Página `/prevencionista/trabajadores`: lista con contador "X / Y activos — Plan {nombre}" y botón "Agregar". Lee `empresas.plan_id` + `planes.max_trabajadores`.
+- [ ] **T071** Modal "Agregar trabajador" con 3 modos en tabs:
+  - **Individual**: cédula, nombre, apellidos, correo, tipos de trabajo (multi). Inserta con `estado='activo'` si nombre+apellidos completos, sino `'pendiente'`.
+  - **Mini-pegado**: textarea con formato `cédula,correo` por línea. Inserta lote con `estado='pendiente'`.
+  - **CSV**: dropzone con vista previa, validación zod, conteo de duplicados.
+- [ ] **T072** Edge Function `import-workers`: upsert idempotente por `(empresa_id, documento)` y `(empresa_id, lower(email))`; envía magic link a nuevos vía Supabase Auth Admin. Maneja error de cupo del trigger `check_plan_limit` y lo reporta por fila.
+- [ ] **T073** UI de resultado: creados / actualizados / omitidos / bloqueados-por-cupo con motivos.
+- [ ] **T074** Ruta `/onboarding` (post-magic-link primer login): si `usuarios.estado='pendiente'` → form para completar nombre, apellidos, tipos de trabajo. Al guardar → `estado='activo'`. Incluye consentimiento Habeas Data en el mismo flujo (consolida con T020).
+- [ ] **T075** `/login` con whitelist: antes de `signInWithOtp` invoca RPC `email_is_whitelisted(email)`. Respuesta UI siempre neutra ("Si tu correo está autorizado, recibirás un enlace de acceso") independiente del resultado, para no filtrar el padrón.
+- [ ] **T076** Acción "Desactivar trabajador" desde tabla → UPDATE `estado='inactivo'`. Libera cupo automáticamente.
+- [ ] **T077** [P] Tests unitarios trigger `check_plan_limit`: empresa con plan starter (25), insertar 25 → OK; insertar 26 → rechazo con mensaje del plan. Reactivar trabajador inactivo cuando cupo lleno → rechazo.
+- [ ] **T078** [P] Tests unitarios whitelist: signup con email no registrado → rechazo silencioso; con email registrado → OK.
+- [ ] **T079** Página `/admin/planes` (solo `empresa_admin`/staff) para cambiar `empresas.plan_id`. MVP: tabla simple sin pasarela de pago.
 
 ## Phase 8 — User Story 6: Recurrencia (P3)
 
@@ -129,7 +144,8 @@ Convenciones:
 - US1 (Phase 3) y US3 (Phase 5) pueden trabajarse en paralelo después de Phase 2, pero US1 debe terminar antes que US2.
 - US2 depende de US1.
 - US4 (reportes) depende de US2 (sin registros no hay reporte).
-- US5 y US6 son independientes una vez Phase 2 está lista.
+- **Phase 7 (US5+US8 whitelist+planes+onboarding) es bloqueante para que cualquier trabajador real pueda entrar a la app**: debe ejecutarse inmediatamente después de Phase 2 (en paralelo con Phase 3 si se distribuyen los recursos).
+- US6 es independiente una vez Phase 2 está lista.
 
 ## Definition of Done por tarea
 
