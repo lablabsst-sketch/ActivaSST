@@ -24,6 +24,9 @@ export function AppShell({ children }: AppShellProps) {
           <Link to="/" className="font-semibold tracking-tight">
             Activa <span className="text-primary">SST</span>
           </Link>
+          <div className="ml-auto">
+            <ServiceWorkerBadge />
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 pb-24 pt-4">{children}</main>
