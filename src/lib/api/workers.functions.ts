@@ -106,6 +106,7 @@ export const importWorkers = createServerFn({ method: "POST" })
   });
 
 async function procesarUno(
+  supabaseAdmin: AdminClient,
   empresa_id: string,
   t: AltaInput,
   redirectTo: string | undefined,
@@ -125,7 +126,7 @@ async function procesarUno(
         .update({ estado: "pendiente" })
         .eq("id", existing.id);
       if (error) return cupoOrError(error, t);
-      return invitar(t, redirectTo);
+      return invitar(supabaseAdmin, t, redirectTo);
     }
     return { email: t.email, documento: t.documento, resultado: "omitido", motivo: "Ya existe" };
   }
@@ -176,7 +177,11 @@ async function procesarUno(
   return { email: t.email, documento: t.documento, resultado: "creado" };
 }
 
-async function invitar(t: AltaInput, redirectTo: string | undefined): Promise<Detalle> {
+async function invitar(
+  supabaseAdmin: AdminClient,
+  t: AltaInput,
+  redirectTo: string | undefined,
+): Promise<Detalle> {
   const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
     t.email,
     redirectTo ? { redirectTo } : undefined,
