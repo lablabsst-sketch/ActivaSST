@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Activity, Home, LogIn, ShieldCheck, User } from "lucide-react";
+import { Activity, Home, LogIn, ShieldCheck, User, Stethoscope } from "lucide-react";
+import { ServiceWorkerBadge } from "./sw-badge";
 
 interface AppShellProps {
   children: ReactNode;
