@@ -34,7 +34,7 @@ export function AppShell({ children }: AppShellProps) {
         aria-label="Navegación principal"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
       >
-        <ul className="mx-auto grid w-full max-w-md grid-cols-4">
+        <ul className="mx-auto grid w-full max-w-md grid-cols-5">
           {navItems.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <Link
