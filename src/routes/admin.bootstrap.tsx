@@ -52,7 +52,6 @@ function BootstrapPage() {
   const {
     register,
     handleSubmit,
-    control,
     setValue,
     watch,
     formState: { errors, isSubmitting },
