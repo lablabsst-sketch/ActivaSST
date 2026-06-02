@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+type AdminClient = SupabaseClient;
 
 // ============================================================
 // Server Function: importWorkers
@@ -69,6 +71,8 @@ export const importWorkers = createServerFn({ method: "POST" })
     }
 
     // 2) Itera con el cliente admin (bypassea RLS pero respeta triggers).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const inputs: AltaInput[] =
       data.modo === "individual" ? [data.trabajador] : data.trabajadores;
 
@@ -82,7 +86,7 @@ export const importWorkers = createServerFn({ method: "POST" })
 
     for (const t of inputs) {
       try {
-        const r = await procesarUno(data.empresa_id, t, redirectTo);
+        const r = await procesarUno(supabaseAdmin, data.empresa_id, t, redirectTo);
         detalles.push(r);
         if (r.resultado === "creado") creados++;
         else if (r.resultado === "omitido") omitidos++;
@@ -102,6 +106,7 @@ export const importWorkers = createServerFn({ method: "POST" })
   });
 
 async function procesarUno(
+  supabaseAdmin: AdminClient,
   empresa_id: string,
   t: AltaInput,
   redirectTo: string | undefined,
@@ -121,7 +126,7 @@ async function procesarUno(
         .update({ estado: "pendiente" })
         .eq("id", existing.id);
       if (error) return cupoOrError(error, t);
-      return invitar(t, redirectTo);
+      return invitar(supabaseAdmin, t, redirectTo);
     }
     return { email: t.email, documento: t.documento, resultado: "omitido", motivo: "Ya existe" };
   }
@@ -172,7 +177,11 @@ async function procesarUno(
   return { email: t.email, documento: t.documento, resultado: "creado" };
 }
 
-async function invitar(t: AltaInput, redirectTo: string | undefined): Promise<Detalle> {
+async function invitar(
+  supabaseAdmin: AdminClient,
+  t: AltaInput,
+  redirectTo: string | undefined,
+): Promise<Detalle> {
   const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
     t.email,
     redirectTo ? { redirectTo } : undefined,
