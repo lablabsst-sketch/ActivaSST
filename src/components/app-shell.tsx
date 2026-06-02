@@ -12,6 +12,7 @@ const navItems = [
   { to: "/trabajador", label: "Trabajador", icon: User },
   { to: "/prevencionista", label: "Prevencionista", icon: ShieldCheck },
   { to: "/login", label: "Entrar", icon: LogIn },
+  { to: "/diagnostico", label: "Diag", icon: Stethoscope },
 ] as const;
 
 export function AppShell({ children }: AppShellProps) {
