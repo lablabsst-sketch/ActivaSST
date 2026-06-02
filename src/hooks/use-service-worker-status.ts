@@ -3,11 +3,7 @@ import { useEffect, useState } from "react";
 export type SwState =
   | "unsupported"
   | "unregistered"
-  | "installing"
-  | "waiting"
-  | "activating"
-  | "activated"
-  | "redundant";
+  | ServiceWorkerState;
 
 export interface ServiceWorkerInfo {
   state: SwState;
