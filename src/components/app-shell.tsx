@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Activity, Home, LogIn, ShieldCheck, User } from "lucide-react";
+import { Activity, Home, LogIn, ShieldCheck, User, Stethoscope } from "lucide-react";
+import { ServiceWorkerBadge } from "./sw-badge";
 
 interface AppShellProps {
   children: ReactNode;
@@ -11,6 +12,7 @@ const navItems = [
   { to: "/trabajador", label: "Trabajador", icon: User },
   { to: "/prevencionista", label: "Prevencionista", icon: ShieldCheck },
   { to: "/login", label: "Entrar", icon: LogIn },
+  { to: "/diagnostico", label: "Diag", icon: Stethoscope },
 ] as const;
 
 export function AppShell({ children }: AppShellProps) {
@@ -22,6 +24,9 @@ export function AppShell({ children }: AppShellProps) {
           <Link to="/" className="font-semibold tracking-tight">
             Activa <span className="text-primary">SST</span>
           </Link>
+          <div className="ml-auto">
+            <ServiceWorkerBadge />
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 pb-24 pt-4">{children}</main>
@@ -29,7 +34,7 @@ export function AppShell({ children }: AppShellProps) {
         aria-label="Navegación principal"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
       >
-        <ul className="mx-auto grid w-full max-w-md grid-cols-4">
+        <ul className="mx-auto grid w-full max-w-md grid-cols-5">
           {navItems.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <Link
