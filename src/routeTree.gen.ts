@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
+import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -59,6 +60,11 @@ const PrevencionistaTrabajadoresRoute =
     path: '/trabajadores',
     getParentRoute: () => PrevencionistaRoute,
   } as any)
+const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
+  id: '/admin/bootstrap',
+  path: '/admin/bootstrap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
+  '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
 }
 export interface FileRoutesByTo {
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
+  '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
 }
 export interface FileRoutesById {
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
+  '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
 }
 export interface FileRouteTypes {
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/prevencionista'
     | '/trabajador'
+    | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/prevencionista'
     | '/trabajador'
+    | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
   id:
     | '__root__'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/prevencionista'
     | '/trabajador'
+    | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
   fileRoutesById: FileRoutesById
 }
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PrevencionistaRoute: typeof PrevencionistaRouteWithChildren
   TrabajadorRoute: typeof TrabajadorRoute
+  AdminBootstrapRoute: typeof AdminBootstrapRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
       parentRoute: typeof PrevencionistaRoute
     }
+    '/admin/bootstrap': {
+      id: '/admin/bootstrap'
+      path: '/admin/bootstrap'
+      fullPath: '/admin/bootstrap'
+      preLoaderRoute: typeof AdminBootstrapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -215,6 +235,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PrevencionistaRoute: PrevencionistaRouteWithChildren,
   TrabajadorRoute: TrabajadorRoute,
+  AdminBootstrapRoute: AdminBootstrapRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
