@@ -13,6 +13,7 @@ import { Route as TrabajadorRouteImport } from './routes/trabajador'
 import { Route as PrevencionistaRouteImport } from './routes/prevencionista'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
@@ -35,6 +36,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiagnosticoRoute = DiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/prevencionista': typeof PrevencionistaRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/prevencionista': typeof PrevencionistaRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/prevencionista': typeof PrevencionistaRoute
@@ -65,12 +74,25 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/magic-link' | '/prevencionista' | '/trabajador'
+  fullPaths:
+    | '/'
+    | '/diagnostico'
+    | '/login'
+    | '/magic-link'
+    | '/prevencionista'
+    | '/trabajador'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/magic-link' | '/prevencionista' | '/trabajador'
+  to:
+    | '/'
+    | '/diagnostico'
+    | '/login'
+    | '/magic-link'
+    | '/prevencionista'
+    | '/trabajador'
   id:
     | '__root__'
     | '/'
+    | '/diagnostico'
     | '/login'
     | '/magic-link'
     | '/prevencionista'
@@ -79,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DiagnosticoRoute: typeof DiagnosticoRoute
   LoginRoute: typeof LoginRoute
   MagicLinkRoute: typeof MagicLinkRoute
   PrevencionistaRoute: typeof PrevencionistaRoute
@@ -115,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnostico': {
+      id: '/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/diagnostico'
+      preLoaderRoute: typeof DiagnosticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -127,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DiagnosticoRoute: DiagnosticoRoute,
   LoginRoute: LoginRoute,
   MagicLinkRoute: MagicLinkRoute,
   PrevencionistaRoute: PrevencionistaRoute,
@@ -135,3 +166,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
