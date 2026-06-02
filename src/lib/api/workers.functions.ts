@@ -71,6 +71,8 @@ export const importWorkers = createServerFn({ method: "POST" })
     }
 
     // 2) Itera con el cliente admin (bypassea RLS pero respeta triggers).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const inputs: AltaInput[] =
       data.modo === "individual" ? [data.trabajador] : data.trabajadores;
 
@@ -84,7 +86,7 @@ export const importWorkers = createServerFn({ method: "POST" })
 
     for (const t of inputs) {
       try {
-        const r = await procesarUno(data.empresa_id, t, redirectTo);
+        const r = await procesarUno(supabaseAdmin, data.empresa_id, t, redirectTo);
         detalles.push(r);
         if (r.resultado === "creado") creados++;
         else if (r.resultado === "omitido") omitidos++;
