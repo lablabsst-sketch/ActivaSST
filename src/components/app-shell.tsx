@@ -141,6 +141,7 @@ export function AppShell({ children }: AppShellProps) {
                 </li>
               ))}
           </ul>
+          )}
         </nav>
       </div>
     </TooltipProvider>
