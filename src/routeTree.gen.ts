@@ -10,23 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrabajadorRouteImport } from './routes/trabajador'
-import { Route as PrevencionistaRouteImport } from './routes/prevencionista'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
   path: '/trabajador',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrevencionistaRoute = PrevencionistaRouteImport.update({
-  id: '/prevencionista',
-  path: '/prevencionista',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -54,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrevencionistaIndexRoute = PrevencionistaIndexRouteImport.update({
+  id: '/prevencionista/',
+  path: '/prevencionista/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrevencionistaTrabajadoresRoute =
   PrevencionistaTrabajadoresRouteImport.update({
     id: '/trabajadores',
@@ -72,10 +72,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
-  '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
+  '/prevencionista/': typeof PrevencionistaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,10 +83,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
-  '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
+  '/prevencionista': typeof PrevencionistaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,10 +95,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
-  '/prevencionista': typeof PrevencionistaRouteWithChildren
   '/trabajador': typeof TrabajadorRoute
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
+  '/prevencionista/': typeof PrevencionistaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,10 +108,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/magic-link'
     | '/onboarding'
-    | '/prevencionista'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
+    | '/prevencionista/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,10 +119,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/magic-link'
     | '/onboarding'
-    | '/prevencionista'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
+    | '/prevencionista'
   id:
     | '__root__'
     | '/'
@@ -130,10 +130,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/magic-link'
     | '/onboarding'
-    | '/prevencionista'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
+    | '/prevencionista/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,9 +142,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MagicLinkRoute: typeof MagicLinkRoute
   OnboardingRoute: typeof OnboardingRoute
-  PrevencionistaRoute: typeof PrevencionistaRouteWithChildren
   TrabajadorRoute: typeof TrabajadorRoute
   AdminBootstrapRoute: typeof AdminBootstrapRoute
+  PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -154,13 +154,6 @@ declare module '@tanstack/react-router' {
       path: '/trabajador'
       fullPath: '/trabajador'
       preLoaderRoute: typeof TrabajadorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prevencionista': {
-      id: '/prevencionista'
-      path: '/prevencionista'
-      fullPath: '/prevencionista'
-      preLoaderRoute: typeof PrevencionistaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -198,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prevencionista/': {
+      id: '/prevencionista/'
+      path: '/prevencionista'
+      fullPath: '/prevencionista/'
+      preLoaderRoute: typeof PrevencionistaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/prevencionista/trabajadores': {
       id: '/prevencionista/trabajadores'
       path: '/trabajadores'
@@ -215,27 +215,15 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface PrevencionistaRouteChildren {
-  PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
-}
-
-const PrevencionistaRouteChildren: PrevencionistaRouteChildren = {
-  PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
-}
-
-const PrevencionistaRouteWithChildren = PrevencionistaRoute._addFileChildren(
-  PrevencionistaRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiagnosticoRoute: DiagnosticoRoute,
   LoginRoute: LoginRoute,
   MagicLinkRoute: MagicLinkRoute,
   OnboardingRoute: OnboardingRoute,
-  PrevencionistaRoute: PrevencionistaRouteWithChildren,
   TrabajadorRoute: TrabajadorRoute,
   AdminBootstrapRoute: AdminBootstrapRoute,
+  PrevencionistaIndexRoute: PrevencionistaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
