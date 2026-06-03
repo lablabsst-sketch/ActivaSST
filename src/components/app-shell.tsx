@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -43,20 +44,20 @@ const devNav: NavItem[] = [
 ];
 
 export function AppShell({ children }: AppShellProps) {
-  const { usuario, session } = useUsuario();
+  const { usuario, loading } = useUsuario();
 
   let items: NavItem[];
-  if (usuario?.rol === "prevencionista" || usuario?.rol === "empresa_admin") {
+  if (loading) {
+    items = [];
+  } else if (usuario?.rol === "prevencionista" || usuario?.rol === "empresa_admin") {
     items = prevencionistaNav;
   } else if (usuario?.rol === "trabajador") {
     items = trabajadorNav;
-  } else if (session) {
-    items = guestNav;
   } else {
     items = guestNav;
   }
 
-  const showProfile = !!usuario;
+  const showProfile = !loading && !!usuario;
   const isDev = import.meta.env.DEV;
 
   return (
@@ -78,6 +79,16 @@ export function AppShell({ children }: AppShellProps) {
           aria-label="Navegación principal"
           className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
         >
+          {loading ? (
+            <ul className="mx-auto grid w-full max-w-md grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="flex flex-col items-center gap-1 py-2">
+                  <Skeleton className="size-5 rounded" />
+                  <Skeleton className="h-3 w-10" />
+                </li>
+              ))}
+            </ul>
+          ) : (
           <ul
             className={cn(
               "mx-auto grid w-full max-w-md",
@@ -130,6 +141,7 @@ export function AppShell({ children }: AppShellProps) {
                 </li>
               ))}
           </ul>
+          )}
         </nav>
       </div>
     </TooltipProvider>
