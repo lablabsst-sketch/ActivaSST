@@ -44,20 +44,20 @@ const devNav: NavItem[] = [
 ];
 
 export function AppShell({ children }: AppShellProps) {
-  const { usuario, session } = useUsuario();
+  const { usuario, loading } = useUsuario();
 
   let items: NavItem[];
-  if (usuario?.rol === "prevencionista" || usuario?.rol === "empresa_admin") {
+  if (loading) {
+    items = [];
+  } else if (usuario?.rol === "prevencionista" || usuario?.rol === "empresa_admin") {
     items = prevencionistaNav;
   } else if (usuario?.rol === "trabajador") {
     items = trabajadorNav;
-  } else if (session) {
-    items = guestNav;
   } else {
     items = guestNav;
   }
 
-  const showProfile = !!usuario;
+  const showProfile = !loading && !!usuario;
   const isDev = import.meta.env.DEV;
 
   return (
