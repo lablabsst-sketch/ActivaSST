@@ -56,9 +56,9 @@ const PrevencionistaIndexRoute = PrevencionistaIndexRouteImport.update({
 } as any)
 const PrevencionistaTrabajadoresRoute =
   PrevencionistaTrabajadoresRouteImport.update({
-    id: '/trabajadores',
-    path: '/trabajadores',
-    getParentRoute: () => PrevencionistaRoute,
+    id: '/prevencionista/trabajadores',
+    path: '/prevencionista/trabajadores',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
   id: '/admin/bootstrap',
@@ -144,6 +144,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   TrabajadorRoute: typeof TrabajadorRoute
   AdminBootstrapRoute: typeof AdminBootstrapRoute
+  PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
 }
 
@@ -200,10 +201,10 @@ declare module '@tanstack/react-router' {
     }
     '/prevencionista/trabajadores': {
       id: '/prevencionista/trabajadores'
-      path: '/trabajadores'
+      path: '/prevencionista/trabajadores'
       fullPath: '/prevencionista/trabajadores'
       preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
-      parentRoute: typeof PrevencionistaRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/bootstrap': {
       id: '/admin/bootstrap'
@@ -223,18 +224,9 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   TrabajadorRoute: TrabajadorRoute,
   AdminBootstrapRoute: AdminBootstrapRoute,
+  PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
