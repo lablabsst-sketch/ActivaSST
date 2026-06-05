@@ -131,22 +131,11 @@ async function procesarUno(
     return { email: t.email, documento: t.documento, resultado: "omitido", motivo: "Ya existe" };
   }
 
-  // Crea el usuario en auth.users con invitación (dispara magic link).
-  const { data: invited, error: invErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-    t.email,
-    redirectTo ? { redirectTo } : undefined,
-  );
-  if (invErr || !invited?.user) {
-    return {
-      email: t.email,
-      documento: t.documento,
-      resultado: "error",
-      motivo: invErr?.message ?? "Invite fallido",
-    };
-  }
-
+  // 1) Insertar PRIMERO en public.usuarios (el trigger enforce_email_whitelist
+  //    sobre auth.users exige que el email exista aquí antes de crear el auth user).
+  const userId = crypto.randomUUID();
   const { error: insErr } = await supabaseAdmin.from("usuarios").insert({
-    id: invited.user.id,
+    id: userId,
     empresa_id,
     rol: "trabajador",
     nombre: t.nombre ?? "",
@@ -154,15 +143,36 @@ async function procesarUno(
     email: t.email,
     estado: t.estado,
   });
-
   if (insErr) {
-    // Rollback Auth para evitar huérfanos.
-    await supabaseAdmin.auth.admin.deleteUser(invited.user.id);
     return cupoOrError(insErr, t);
   }
 
+  // 2) Crear el auth user con el MISMO UUID.
+  const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+    id: userId,
+    email: t.email,
+    email_confirm: false,
+  });
+  if (createErr) {
+    // Rollback: borrar la fila para evitar huérfanos.
+    await supabaseAdmin.from("usuarios").delete().eq("id", userId);
+    return {
+      email: t.email,
+      documento: t.documento,
+      resultado: "error",
+      motivo: createErr.message,
+    };
+  }
+
+  // 3) Enviar magic link. Si falla, el usuario ya existe — no rollback.
+  const { error: invErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    t.email,
+    redirectTo ? { redirectTo } : undefined,
+  );
+
+  // 4) Asignar tipos de trabajo.
   if (t.tipo_ids?.length) {
-    const rows = t.tipo_ids.map((tipo_id) => ({ usuario_id: invited.user!.id, tipo_id }));
+    const rows = t.tipo_ids.map((tipo_id) => ({ usuario_id: userId, tipo_id }));
     const { error: tipoErr } = await supabaseAdmin.from("usuario_tipos_trabajo").insert(rows);
     if (tipoErr) {
       return {
@@ -172,6 +182,15 @@ async function procesarUno(
         motivo: `Creado, pero falló asignar tipos: ${tipoErr.message}`,
       };
     }
+  }
+
+  if (invErr) {
+    return {
+      email: t.email,
+      documento: t.documento,
+      resultado: "creado",
+      motivo: `Creado, pero falló envío de invitación: ${invErr.message}`,
+    };
   }
 
   return { email: t.email, documento: t.documento, resultado: "creado" };
