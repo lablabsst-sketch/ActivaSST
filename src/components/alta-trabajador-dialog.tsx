@@ -150,7 +150,7 @@ function FormIndividual({
             nombre: `${values.nombre} ${values.apellidos}`.trim(),
             email: values.email,
             tipo_ids: values.tipoIds,
-            estado: "activo",
+            estado: "pendiente",
           },
         },
       });
