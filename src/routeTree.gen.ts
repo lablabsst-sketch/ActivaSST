@@ -18,7 +18,10 @@ import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
+import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
+import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
+import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -66,10 +69,26 @@ const PrevencionistaTrabajadoresRoute =
     path: '/prevencionista/trabajadores',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PrevencionistaProgramacionesRoute =
+  PrevencionistaProgramacionesRouteImport.update({
+    id: '/prevencionista/programaciones',
+    path: '/prevencionista/programaciones',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PrevencionistaPausasRoute = PrevencionistaPausasRouteImport.update({
+  id: '/prevencionista/pausas',
+  path: '/prevencionista/pausas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
   id: '/admin/bootstrap',
   path: '/admin/bootstrap',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
+  id: '/pausa/$id',
+  path: '/pausa/$id',
+  getParentRoute: () => TrabajadorRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -79,10 +98,13 @@ export interface FileRoutesByFullPath {
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
-  '/trabajador': typeof TrabajadorRoute
+  '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/prevencionista/pausas': typeof PrevencionistaPausasRoute
+  '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,10 +113,13 @@ export interface FileRoutesByTo {
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
-  '/trabajador': typeof TrabajadorRoute
+  '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/prevencionista/pausas': typeof PrevencionistaPausasRoute
+  '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
+  '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,10 +129,13 @@ export interface FileRoutesById {
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
-  '/trabajador': typeof TrabajadorRoute
+  '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/prevencionista/pausas': typeof PrevencionistaPausasRoute
+  '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -120,8 +148,11 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/prevencionista/pausas'
+    | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
     | '/prevencionista/'
+    | '/trabajador/pausa/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -132,8 +163,11 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/prevencionista/pausas'
+    | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
     | '/prevencionista'
+    | '/trabajador/pausa/$id'
   id:
     | '__root__'
     | '/'
@@ -144,8 +178,11 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/prevencionista/pausas'
+    | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
     | '/prevencionista/'
+    | '/trabajador/pausa/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,8 +192,10 @@ export interface RootRouteChildren {
   MagicLinkRoute: typeof MagicLinkRoute
   OnboardingRoute: typeof OnboardingRoute
   PerfilRoute: typeof PerfilRoute
-  TrabajadorRoute: typeof TrabajadorRoute
+  TrabajadorRoute: typeof TrabajadorRouteWithChildren
   AdminBootstrapRoute: typeof AdminBootstrapRoute
+  PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
+  PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
 }
@@ -226,6 +265,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prevencionista/programaciones': {
+      id: '/prevencionista/programaciones'
+      path: '/prevencionista/programaciones'
+      fullPath: '/prevencionista/programaciones'
+      preLoaderRoute: typeof PrevencionistaProgramacionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prevencionista/pausas': {
+      id: '/prevencionista/pausas'
+      path: '/prevencionista/pausas'
+      fullPath: '/prevencionista/pausas'
+      preLoaderRoute: typeof PrevencionistaPausasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/bootstrap': {
       id: '/admin/bootstrap'
       path: '/admin/bootstrap'
@@ -233,8 +286,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBootstrapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trabajador/pausa/$id': {
+      id: '/trabajador/pausa/$id'
+      path: '/pausa/$id'
+      fullPath: '/trabajador/pausa/$id'
+      preLoaderRoute: typeof TrabajadorPausaIdRouteImport
+      parentRoute: typeof TrabajadorRoute
+    }
   }
 }
+
+interface TrabajadorRouteChildren {
+  TrabajadorPausaIdRoute: typeof TrabajadorPausaIdRoute
+}
+
+const TrabajadorRouteChildren: TrabajadorRouteChildren = {
+  TrabajadorPausaIdRoute: TrabajadorPausaIdRoute,
+}
+
+const TrabajadorRouteWithChildren = TrabajadorRoute._addFileChildren(
+  TrabajadorRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -243,11 +315,23 @@ const rootRouteChildren: RootRouteChildren = {
   MagicLinkRoute: MagicLinkRoute,
   OnboardingRoute: OnboardingRoute,
   PerfilRoute: PerfilRoute,
-  TrabajadorRoute: TrabajadorRoute,
+  TrabajadorRoute: TrabajadorRouteWithChildren,
   AdminBootstrapRoute: AdminBootstrapRoute,
+  PrevencionistaPausasRoute: PrevencionistaPausasRoute,
+  PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
