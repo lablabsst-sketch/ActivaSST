@@ -56,9 +56,9 @@ function PerfilPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("consentimientos")
-        .select("version_aviso, aceptado_en")
+        .select("version_aviso, aceptado_at")
         .eq("usuario_id", usuario!.id)
-        .order("aceptado_en", { ascending: false })
+        .order("aceptado_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
@@ -163,7 +163,7 @@ function PerfilPage() {
                 <Row label="Versión" value={consentQuery.data.version_aviso} />
                 <Row
                   label="Aceptado"
-                  value={new Date(consentQuery.data.aceptado_en).toLocaleString()}
+                  value={new Date(consentQuery.data.aceptado_at).toLocaleString()}
                 />
               </div>
             ) : (
