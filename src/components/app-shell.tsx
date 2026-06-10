@@ -4,10 +4,7 @@ import { Activity, Home, LogIn, ShieldCheck, Stethoscope, User, Users } from "lu
 import { ServiceWorkerBadge } from "./sw-badge";
 import { useUsuario } from "@/hooks/use-session";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
