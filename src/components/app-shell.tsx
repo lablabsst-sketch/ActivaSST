@@ -17,7 +17,7 @@ interface AppShellProps {
 }
 
 type NavItem = {
-  to: "/" | "/prevencionista" | "/prevencionista/trabajadores" | "/trabajador" | "/login" | "/diagnostico";
+  to: "/" | "/prevencionista" | "/prevencionista/trabajadores" | "/trabajador" | "/login" | "/diagnostico" | "/perfil";
   label: string;
   icon: typeof Home;
   exact?: boolean;
@@ -112,19 +112,14 @@ export function AppShell({ children }: AppShellProps) {
             ))}
             {showProfile && (
               <li>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      disabled
-                      className="flex w-full flex-col items-center gap-1 py-2 text-xs text-muted-foreground/50 cursor-not-allowed"
-                    >
-                      <User className="size-5" aria-hidden />
-                      Perfil
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>Próximamente</TooltipContent>
-                </Tooltip>
+                <Link
+                  to="/perfil"
+                  activeOptions={{ exact: false }}
+                  className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground data-[status=active]:text-primary"
+                >
+                  <User className="size-5" aria-hidden />
+                  Perfil
+                </Link>
               </li>
             )}
             {isDev &&
