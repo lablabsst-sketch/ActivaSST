@@ -1,7 +1,19 @@
+import { useEffect, useState } from "react";
 import { useServiceWorkerStatus } from "@/hooks/use-service-worker-status";
 
 export function ServiceWorkerBadge() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const { state, scope, isPreview } = useServiceWorkerStatus();
+
+  // SSR + first client render emit the same placeholder to avoid hydration mismatch.
+  if (!mounted) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+        SW: …
+      </span>
+    );
+  }
 
   const colorMap: Record<string, string> = {
     unsupported: "bg-muted text-muted-foreground",
@@ -42,3 +54,4 @@ export function ServiceWorkerBadge() {
     </span>
   );
 }
+
