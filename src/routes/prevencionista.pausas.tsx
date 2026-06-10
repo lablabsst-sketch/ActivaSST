@@ -26,7 +26,7 @@ import { useUsuario } from "@/hooks/use-session";
 import type { Database } from "@/integrations/supabase/types";
 
 type Pausa = Database["public"]["Tables"]["pausas_oficiales"]["Row"];
-type PackEnum = Database["public"]["Enums"]["pack_pausa"];
+type PackEnum = Database["public"]["Enums"]["pausa_oficial_pack"];
 
 export const Route = createFileRoute("/prevencionista/pausas")({
   head: () => ({ meta: [{ title: "Pausas — Activa SST" }] }),
