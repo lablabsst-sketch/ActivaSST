@@ -33,21 +33,6 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrevencionistaProgramacionesRoute = PrevencionistaProgramacionesRouteImport.update({
-  id: '/prevencionista/programaciones',
-  path: '/prevencionista/programaciones',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrevencionistaPausasRoute = PrevencionistaPausasRouteImport.update({
-  id: '/prevencionista/pausas',
-  path: '/prevencionista/pausas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
-  id: '/trabajador/pausa/$id',
-  path: '/trabajador/pausa/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
