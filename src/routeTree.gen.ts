@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrabajadorRouteImport } from './routes/trabajador'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as LoginRouteImport } from './routes/login'
@@ -22,6 +23,11 @@ import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
   path: '/trabajador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
+  '/perfil': typeof PerfilRoute
   '/trabajador': typeof TrabajadorRoute
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
+  '/perfil': typeof PerfilRoute
   '/trabajador': typeof TrabajadorRoute
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
+  '/perfil': typeof PerfilRoute
   '/trabajador': typeof TrabajadorRoute
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/magic-link'
     | '/onboarding'
+    | '/perfil'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/magic-link'
     | '/onboarding'
+    | '/perfil'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/magic-link'
     | '/onboarding'
+    | '/perfil'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/trabajadores'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MagicLinkRoute: typeof MagicLinkRoute
   OnboardingRoute: typeof OnboardingRoute
+  PerfilRoute: typeof PerfilRoute
   TrabajadorRoute: typeof TrabajadorRoute
   AdminBootstrapRoute: typeof AdminBootstrapRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/trabajador'
       fullPath: '/trabajador'
       preLoaderRoute: typeof TrabajadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MagicLinkRoute: MagicLinkRoute,
   OnboardingRoute: OnboardingRoute,
+  PerfilRoute: PerfilRoute,
   TrabajadorRoute: TrabajadorRoute,
   AdminBootstrapRoute: AdminBootstrapRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
