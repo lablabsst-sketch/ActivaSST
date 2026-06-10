@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, BarChart3, Bell, Users, ArrowRight } from "lucide-react";
+import { Activity, BarChart3, Bell, Users, ArrowRight, CalendarClock } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -44,6 +44,84 @@ function PrevencionistaPage() {
     },
   });
 
+  const programasActivosCount = useQuery({
+    queryKey: ["progs-activas-count", empresaId],
+    enabled: !!empresaId,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("programaciones")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId!)
+        .eq("activa", true);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const pausasHoy = useQuery({
+    queryKey: ["pausas-hoy", empresaId],
+    enabled: !!empresaId,
+    queryFn: async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { data: progs } = await supabase
+        .from("programaciones")
+        .select("id")
+        .eq("empresa_id", empresaId!);
+      const progIds = (progs ?? []).map((p) => p.id);
+      if (progIds.length === 0) return 0;
+      const { count, error } = await supabase
+        .from("pausa_registros")
+        .select("id", { count: "exact", head: true })
+        .in("programacion_id", progIds)
+        .eq("estado", "hecha")
+        .gte("respondido_en", startOfDay.toISOString());
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const adherencia7d = useQuery({
+    queryKey: ["adherencia-7d", empresaId],
+    enabled: !!empresaId && (programasActivosCount.data ?? 0) > 0,
+    queryFn: async () => {
+      const inicio = new Date();
+      inicio.setDate(inicio.getDate() - 7);
+      inicio.setHours(0, 0, 0, 0);
+      const { data: progs } = await supabase
+        .from("programaciones")
+        .select("id, dias_semana, horas, activa")
+        .eq("empresa_id", empresaId!)
+        .eq("activa", true);
+      let denom = 0;
+      const dias = 7;
+      const now = new Date();
+      for (let i = 0; i < dias; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const dow = d.getDay();
+        for (const p of progs ?? []) {
+          if (p.dias_semana.includes(dow)) denom += p.horas.length;
+        }
+      }
+      if (denom === 0) return { num: 0, denom: 0 };
+      const progIds = (progs ?? []).map((p) => p.id);
+      const { count } = await supabase
+        .from("pausa_registros")
+        .select("id", { count: "exact", head: true })
+        .in("programacion_id", progIds)
+        .eq("estado", "hecha")
+        .gte("respondido_en", inicio.toISOString());
+      const trabajadoresEmpresa = trabajadoresCount.data ?? 1;
+      return { num: count ?? 0, denom: denom * Math.max(1, trabajadoresEmpresa) };
+    },
+  });
+
+  const adherenciaPct =
+    adherencia7d.data && adherencia7d.data.denom > 0
+      ? Math.round((adherencia7d.data.num / adherencia7d.data.denom) * 100)
+      : null;
+
   return (
     <AppShell>
       <TooltipProvider delayDuration={150}>
@@ -76,49 +154,84 @@ function PrevencionistaPage() {
               </Card>
             </Link>
 
-            <KpiPending icon={Activity} label="Pausas hoy" />
-            <KpiPending icon={BarChart3} label="Adherencia" />
-            <KpiPending icon={Bell} label="Alertas" />
+            <Card>
+              <CardHeader className="pb-2">
+                <Activity className="size-5 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {pausasHoy.isLoading ? "…" : (pausasHoy.data ?? 0)}
+                </p>
+                <p className="text-xs text-muted-foreground">Pausas hoy</p>
+              </CardContent>
+            </Card>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <BarChart3 className="size-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold">
+                      {adherenciaPct === null ? "—" : `${adherenciaPct}%`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Adherencia 7d</p>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent>
+                {adherenciaPct === null
+                  ? "Sin programaciones activas"
+                  : "Completadas / programadas en los últimos 7 días"}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <Bell className="size-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold">—</p>
+                    <p className="text-xs text-muted-foreground">Alertas</p>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent>
+                Próximamente: trabajadores con baja adherencia.
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Programa activo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Aún no has configurado programas de pausas activas.
-              </p>
-            </CardContent>
-          </Card>
+
+          <Link
+            to="/prevencionista/programaciones"
+            className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <Card className="cursor-pointer transition hover:shadow-md hover:border-primary/40">
+              <CardHeader className="pb-2 flex-row items-center gap-2 space-y-0">
+                <CalendarClock className="size-5 text-primary" />
+                <CardTitle className="text-base">Programa activo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">
+                  {programasActivosCount.isLoading
+                    ? "Cargando…"
+                    : (programasActivosCount.data ?? 0) === 0
+                    ? "Aún no has configurado programaciones."
+                    : `${programasActivosCount.data} programación${
+                        programasActivosCount.data === 1 ? "" : "es"
+                      } activa${programasActivosCount.data === 1 ? "" : "s"}.`}
+                </p>
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
+                  Gestionar <ArrowRight className="size-3" />
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </section>
       </TooltipProvider>
     </AppShell>
-  );
-}
-
-function KpiPending({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof Activity;
-  label: string;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Card className="cursor-help">
-          <CardHeader className="pb-2">
-            <Icon className="size-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">—</p>
-            <p className="text-xs text-muted-foreground">{label}</p>
-          </CardContent>
-        </Card>
-      </TooltipTrigger>
-      <TooltipContent>
-        Disponible cuando haya programaciones activas (T080+).
-      </TooltipContent>
-    </Tooltip>
   );
 }

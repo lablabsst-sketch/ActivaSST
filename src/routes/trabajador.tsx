@@ -1,59 +1,97 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Bell, Play, X } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Play } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useUsuario } from "@/hooks/use-session";
+import { proximosSlots, slotsHoyCount, type ProgInput } from "@/lib/dias-horas";
 
 export const Route = createFileRoute("/trabajador")({
-  head: () => ({
-    meta: [
-      { title: "Mis pausas — Activa SST" },
-      { name: "description", content: "Tus pausas activas del día." },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Mis pausas — Activa SST" }] }),
   component: TrabajadorPage,
 });
 
 function TrabajadorPage() {
-  const [showBanner, setShowBanner] = useState(true);
+  const { usuario } = useUsuario();
+  const empresaId = usuario?.empresa_id;
+  const userId = usuario?.id;
+
+  const tiposQ = useQuery({
+    queryKey: ["mis-tipos", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("usuario_tipos_trabajo")
+        .select("tipo_id")
+        .eq("usuario_id", userId!);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.tipo_id);
+    },
+  });
+
+  const progsQ = useQuery({
+    queryKey: ["progs-activas", empresaId],
+    enabled: !!empresaId,
+    queryFn: async (): Promise<ProgInput[]> => {
+      const { data, error } = await supabase
+        .from("programaciones")
+        .select("id, pausa_oficial_id, nombre, dias_semana, horas, tipos_trabajo_objetivo, activa")
+        .eq("empresa_id", empresaId!)
+        .eq("activa", true);
+      if (error) throw error;
+      return (data ?? []).map((p) => ({
+        id: p.id,
+        pausa_oficial_id: p.pausa_oficial_id,
+        nombre: p.nombre,
+        dias_semana: p.dias_semana,
+        horas: p.horas,
+        tipos_trabajo_objetivo: p.tipos_trabajo_objetivo,
+      }));
+    },
+  });
+
+  const completadasHoyQ = useQuery({
+    queryKey: ["completadas-hoy", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { count, error } = await supabase
+        .from("pausa_registros")
+        .select("id", { count: "exact", head: true })
+        .eq("trabajador_id", userId!)
+        .eq("estado", "hecha")
+        .gte("respondido_en", startOfDay.toISOString());
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const pausasMapQ = useQuery({
+    queryKey: ["pausas-oficiales-map"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pausas_oficiales")
+        .select("id, titulo, duracion_min");
+      if (error) throw error;
+      return new Map((data ?? []).map((p) => [p.id, p]));
+    },
+  });
+
+  const slots = proximosSlots(progsQ.data ?? [], tiposQ.data ?? []);
+  const proxima = slots[0];
+  const pausaInfo = proxima ? pausasMapQ.data?.get(proxima.pausa_oficial_id) : undefined;
+  const totalHoy = slotsHoyCount(progsQ.data ?? [], tiposQ.data ?? []);
 
   return (
     <AppShell>
       <section className="flex flex-col gap-5 pt-4">
-        {showBanner && (
-          <div
-            role="status"
-            className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3 text-sm"
-          >
-            <Bell className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">Es hora de tu pausa activa</p>
-              <p className="text-xs text-muted-foreground">
-                Estírate 3 minutos para cuidar tu espalda.
-              </p>
-              <div className="mt-2 flex gap-2">
-                <Button size="sm">
-                  <Play className="size-4" /> Empezar
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setShowBanner(false)}>
-                  Más tarde
-                </Button>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowBanner(false)}
-              aria-label="Cerrar aviso"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-        )}
-
         <header>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Hola 👋</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Hola{usuario?.nombre ? `, ${usuario.nombre.split(" ")[0]}` : ""} 👋
+          </p>
           <h1 className="text-2xl font-bold tracking-tight">Tu jornada activa</h1>
         </header>
 
@@ -62,8 +100,29 @@ function TrabajadorPage() {
             <CardTitle className="text-base">Próxima pausa</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-3xl font-bold text-primary">10:30 a. m.</p>
-            <p className="text-xs text-muted-foreground">Estiramiento cervical · 3 min</p>
+            {progsQ.isLoading ? (
+              <p className="text-sm text-muted-foreground">Cargando…</p>
+            ) : proxima ? (
+              <>
+                <p className="text-3xl font-bold text-primary">{proxima.hora}</p>
+                <p className="text-xs text-muted-foreground">
+                  {pausaInfo?.titulo ?? proxima.nombre}
+                  {pausaInfo ? ` · ${pausaInfo.duracion_min} min` : ""}
+                </p>
+                <Button asChild size="sm" className="mt-2">
+                  <Link
+                    to="/trabajador/pausa/$id"
+                    params={{ id: proxima.programacion_id }}
+                  >
+                    <Play className="size-4" /> Empezar
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No tienes pausas programadas próximamente.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -73,7 +132,8 @@ function TrabajadorPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              0 de 4 pausas completadas. ¡Empieza cuando estés listo!
+              {completadasHoyQ.data ?? 0} de {totalHoy} pausas completadas.
+              {totalHoy > 0 && completadasHoyQ.data === totalHoy && " ¡Excelente!"}
             </p>
           </CardContent>
         </Card>

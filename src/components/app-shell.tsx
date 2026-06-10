@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Activity, Home, LogIn, ShieldCheck, Stethoscope, User, Users } from "lucide-react";
+import { Activity, CalendarClock, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
 import { ServiceWorkerBadge } from "./sw-badge";
 import { useUsuario } from "@/hooks/use-session";
 import {
@@ -14,7 +14,16 @@ interface AppShellProps {
 }
 
 type NavItem = {
-  to: "/" | "/prevencionista" | "/prevencionista/trabajadores" | "/trabajador" | "/login" | "/diagnostico" | "/perfil";
+  to:
+    | "/"
+    | "/prevencionista"
+    | "/prevencionista/trabajadores"
+    | "/prevencionista/programaciones"
+    | "/prevencionista/pausas"
+    | "/trabajador"
+    | "/login"
+    | "/diagnostico"
+    | "/perfil";
   label: string;
   icon: typeof Home;
   exact?: boolean;
@@ -22,7 +31,9 @@ type NavItem = {
 
 const prevencionistaNav: NavItem[] = [
   { to: "/prevencionista", label: "Inicio", icon: Home, exact: true },
-  { to: "/prevencionista/trabajadores", label: "Trabajadores", icon: Users },
+  { to: "/prevencionista/trabajadores", label: "Trabaj.", icon: Users },
+  { to: "/prevencionista/programaciones", label: "Programas", icon: CalendarClock },
+  { to: "/prevencionista/pausas", label: "Pausas", icon: Sparkles },
 ];
 
 const trabajadorNav: NavItem[] = [
