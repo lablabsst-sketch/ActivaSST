@@ -90,9 +90,11 @@ export type Database = {
       pausa_registros: {
         Row: {
           created_at: string
+          duracion_real_seg: number | null
           estado: Database["public"]["Enums"]["estado_registro"]
           id: string
           motivo: string | null
+          pausa_oficial_id: string | null
           programacion_id: string
           respondido_en: string
           response_uuid: string
@@ -101,9 +103,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          duracion_real_seg?: number | null
           estado: Database["public"]["Enums"]["estado_registro"]
           id?: string
           motivo?: string | null
+          pausa_oficial_id?: string | null
           programacion_id: string
           respondido_en?: string
           response_uuid?: string
@@ -112,9 +116,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          duracion_real_seg?: number | null
           estado?: Database["public"]["Enums"]["estado_registro"]
           id?: string
           motivo?: string | null
+          pausa_oficial_id?: string | null
           programacion_id?: string
           respondido_en?: string
           response_uuid?: string
@@ -122,6 +128,13 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pausa_registros_pausa_oficial_id_fkey"
+            columns: ["pausa_oficial_id"]
+            isOneToOne: false
+            referencedRelation: "pausas_oficiales"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pausa_registros_programacion_id_fkey"
             columns: ["programacion_id"]
@@ -227,6 +240,7 @@ export type Database = {
           codigo: string
           created_at: string
           duracion_min: number
+          empresa_id: string | null
           id: string
           image_url: string | null
           instrucciones: string
@@ -238,6 +252,7 @@ export type Database = {
           codigo: string
           created_at?: string
           duracion_min: number
+          empresa_id?: string | null
           id?: string
           image_url?: string | null
           instrucciones: string
@@ -249,6 +264,7 @@ export type Database = {
           codigo?: string
           created_at?: string
           duracion_min?: number
+          empresa_id?: string | null
           id?: string
           image_url?: string | null
           instrucciones?: string
@@ -256,7 +272,45 @@ export type Database = {
           titulo?: string
           video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pausas_oficiales_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pausas_oficiales_ocultas: {
+        Row: {
+          empresa_id: string
+          pausa_oficial_id: string
+        }
+        Insert: {
+          empresa_id: string
+          pausa_oficial_id: string
+        }
+        Update: {
+          empresa_id?: string
+          pausa_oficial_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pausas_oficiales_ocultas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pausas_oficiales_ocultas_pausa_oficial_id_fkey"
+            columns: ["pausa_oficial_id"]
+            isOneToOne: false
+            referencedRelation: "pausas_oficiales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pausas_oficiales_tipos_trabajo: {
         Row: {
@@ -350,37 +404,43 @@ export type Database = {
       }
       programaciones: {
         Row: {
+          activa: boolean
           creador_id: string
           created_at: string
-          disparo_at: string
+          dias_semana: number[]
           empresa_id: string
+          horas: string[]
           id: string
-          pausa_id: string
-          procesada_at: string | null
-          recurrencia_json: Json | null
-          ventana_min: number
+          nombre: string
+          pausa_oficial_id: string
+          tipos_trabajo_objetivo: string[]
+          updated_at: string
         }
         Insert: {
+          activa?: boolean
           creador_id: string
           created_at?: string
-          disparo_at: string
+          dias_semana?: number[]
           empresa_id: string
+          horas?: string[]
           id?: string
-          pausa_id: string
-          procesada_at?: string | null
-          recurrencia_json?: Json | null
-          ventana_min?: number
+          nombre: string
+          pausa_oficial_id: string
+          tipos_trabajo_objetivo?: string[]
+          updated_at?: string
         }
         Update: {
+          activa?: boolean
           creador_id?: string
           created_at?: string
-          disparo_at?: string
+          dias_semana?: number[]
           empresa_id?: string
+          horas?: string[]
           id?: string
-          pausa_id?: string
-          procesada_at?: string | null
-          recurrencia_json?: Json | null
-          ventana_min?: number
+          nombre?: string
+          pausa_oficial_id?: string
+          tipos_trabajo_objetivo?: string[]
+          updated_at?: string
         }
         Relationships: [
           {
@@ -398,10 +458,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "programaciones_pausa_id_fkey"
-            columns: ["pausa_id"]
+            foreignKeyName: "programaciones_pausa_oficial_fkey"
+            columns: ["pausa_oficial_id"]
             isOneToOne: false
-            referencedRelation: "pausas"
+            referencedRelation: "pausas_oficiales"
             referencedColumns: ["id"]
           },
         ]
@@ -555,7 +615,12 @@ export type Database = {
       email_is_whitelisted: { Args: { p_email: string }; Returns: boolean }
     }
     Enums: {
-      estado_registro: "pendiente" | "hecha" | "rechazada" | "vencida"
+      estado_registro:
+        | "pendiente"
+        | "hecha"
+        | "rechazada"
+        | "vencida"
+        | "postpuesta"
       estado_usuario: "pendiente" | "activo" | "inactivo"
       pausa_oficial_pack:
         | "oficina_basico"
@@ -692,7 +757,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      estado_registro: ["pendiente", "hecha", "rechazada", "vencida"],
+      estado_registro: [
+        "pendiente",
+        "hecha",
+        "rechazada",
+        "vencida",
+        "postpuesta",
+      ],
       estado_usuario: ["pendiente", "activo", "inactivo"],
       pausa_oficial_pack: [
         "oficina_basico",
