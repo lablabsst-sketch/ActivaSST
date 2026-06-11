@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/public/qa-seed")({
               id: userId,
               empresa_id: empresa.id,
               email,
-              nombre: t.nombre ?? null,
+              nombre: t.nombre ?? "",
               rol: "trabajador",
               estado: "pendiente",
             });
