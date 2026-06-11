@@ -22,6 +22,7 @@ import { Route as PrevencionistaProgramacionesRouteImport } from './routes/preve
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
+import { Route as ApiPublicQaSeedRouteImport } from './routes/api/public/qa-seed'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -90,6 +91,11 @@ const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
   path: '/pausa/$id',
   getParentRoute: () => TrabajadorRoute,
 } as any)
+const ApiPublicQaSeedRoute = ApiPublicQaSeedRouteImport.update({
+  id: '/api/public/qa-seed',
+  path: '/api/public/qa-seed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesByTo {
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
+  '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesById {
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRouteTypes {
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
     | '/prevencionista/'
+    | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
     | '/prevencionista'
+    | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   id:
     | '__root__'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
     | '/prevencionista/'
+    | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   fileRoutesById: FileRoutesById
 }
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
+  ApiPublicQaSeedRoute: typeof ApiPublicQaSeedRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrabajadorPausaIdRouteImport
       parentRoute: typeof TrabajadorRoute
     }
+    '/api/public/qa-seed': {
+      id: '/api/public/qa-seed'
+      path: '/api/public/qa-seed'
+      fullPath: '/api/public/qa-seed'
+      preLoaderRoute: typeof ApiPublicQaSeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -321,17 +341,8 @@ const rootRouteChildren: RootRouteChildren = {
   PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
+  ApiPublicQaSeedRoute: ApiPublicQaSeedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
