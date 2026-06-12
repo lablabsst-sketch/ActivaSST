@@ -30,7 +30,8 @@ type NavItem = {
     | "/login"
     | "/diagnostico"
     | "/perfil"
-    | "/politica-tratamiento-datos";
+    | "/politica-tratamiento-datos"
+    | "/terminos-condiciones";
   label: string;
   icon: typeof Home;
   exact?: boolean;
