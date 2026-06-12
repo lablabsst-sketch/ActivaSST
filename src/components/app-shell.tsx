@@ -115,12 +115,16 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
+        <main id="main-content" className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
 
         <footer className="mx-auto w-full max-w-md px-4 pb-24 pt-2 text-[10px] text-muted-foreground text-center space-y-0.5">
           <p>
             <Link to="/politica-tratamiento-datos" className="underline hover:text-foreground">
-              Política de Tratamiento de Datos
+              Política Tratamiento Datos
+            </Link>
+            {" · "}
+            <Link to="/terminos-condiciones" className="underline hover:text-foreground">
+              Términos
             </Link>
             {" · "}
             <a
