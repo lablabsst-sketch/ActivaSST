@@ -35,6 +35,13 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 const CONSENT_VERSION = "v1-2026-06";
+const FINALIDADES = [
+  "gestion_pausas_activas",
+  "cumplimiento_sg_sst",
+  "reportes_adherencia",
+  "comunicaciones_operativas",
+  "auditoria_legal",
+];
 
 function OnboardingPage() {
   const navigate = useNavigate();
@@ -138,6 +145,7 @@ function OnboardingPage() {
         usuario_id: usuario.id,
         version_aviso: CONSENT_VERSION,
         user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        finalidades_aceptadas: FINALIDADES,
       });
       if (consErr) throw consErr;
 
@@ -218,10 +226,19 @@ function OnboardingPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Activa SST recolectará tu nombre, correo, cédula, tipo de trabajo y las respuestas
-                que des a las pausas activas, con el único fin de gestionar el cumplimiento de tu
-                programa SG-SST. Puedes revocar este consentimiento en cualquier momento desde tu
-                perfil.
+                Activa SST trata datos de identificación, laborales y{" "}
+                <strong>sensibles de salud ocupacional</strong> (registro de
+                pausas activas) para cumplir la Resolución 0312/2019 SST. Lee
+                la{" "}
+                <a
+                  href="/politica-tratamiento-datos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary"
+                >
+                  Política de Tratamiento de Datos
+                </a>{" "}
+                completa.
               </p>
               <label className="flex items-start gap-2 text-sm">
                 <Checkbox
@@ -232,10 +249,18 @@ function OnboardingPage() {
                     })
                   }
                 />
-                <span>Acepto el tratamiento de mis datos según los términos anteriores.</span>
+                <span>
+                  He leído y acepto la Política de Tratamiento de Datos
+                  Personales conforme a la Ley 1581 de 2012, autorizando
+                  expresamente el tratamiento de mis datos personales y
+                  sensibles (salud ocupacional) para las finalidades allí
+                  descritas.
+                </span>
               </label>
               {errors.consentimiento && (
-                <p className="text-xs text-destructive">{errors.consentimiento.message}</p>
+                <p className="text-xs text-destructive" role="alert">
+                  {errors.consentimiento.message}
+                </p>
               )}
             </CardContent>
           </Card>

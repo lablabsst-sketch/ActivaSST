@@ -24,11 +24,13 @@ type NavItem = {
     | "/prevencionista/trabajadores"
     | "/prevencionista/programaciones"
     | "/prevencionista/pausas"
+    | "/prevencionista/solicitudes-arco"
     | "/trabajador"
     | "/trabajador/historial"
     | "/login"
     | "/diagnostico"
-    | "/perfil";
+    | "/perfil"
+    | "/politica-tratamiento-datos";
   label: string;
   icon: typeof Home;
   exact?: boolean;
@@ -114,6 +116,22 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
+
+        <footer className="mx-auto w-full max-w-md px-4 pb-24 pt-2 text-[10px] text-muted-foreground text-center space-y-0.5">
+          <p>
+            <Link to="/politica-tratamiento-datos" className="underline hover:text-foreground">
+              Política de Tratamiento de Datos
+            </Link>
+            {" · "}
+            <a
+              href="mailto:tratamiento@activasst.co"
+              className="underline hover:text-foreground"
+            >
+              tratamiento@activasst.co
+            </a>
+          </p>
+          <p>© Activa SST · Ley 1581/2012 (Habeas Data)</p>
+        </footer>
         <nav
           aria-label="Navegación principal"
           className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur safe-bottom"

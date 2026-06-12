@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import { updateEmpresa } from "@/lib/api/empresa.functions";
+import { ArcoSection } from "@/components/arco-section";
 
 
 export const Route = createFileRoute("/perfil")({
@@ -171,13 +172,15 @@ function PerfilPage() {
           </CardContent>
         </Card>
 
+        <ArcoSection />
+
         <Separator />
 
         <Button
           variant="destructive"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="w-full"
+          className="w-full min-h-11"
         >
           {signingOut ? "Cerrando…" : "Cerrar sesión"}
         </Button>

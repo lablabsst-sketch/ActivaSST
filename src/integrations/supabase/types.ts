@@ -17,24 +17,33 @@ export type Database = {
       consentimientos: {
         Row: {
           aceptado_at: string
+          finalidades_aceptadas: string[]
           id: string
+          ip_origen: string | null
           revocado_at: string | null
+          revocado_motivo: string | null
           user_agent: string | null
           usuario_id: string
           version_aviso: string
         }
         Insert: {
           aceptado_at?: string
+          finalidades_aceptadas?: string[]
           id?: string
+          ip_origen?: string | null
           revocado_at?: string | null
+          revocado_motivo?: string | null
           user_agent?: string | null
           usuario_id: string
           version_aviso: string
         }
         Update: {
           aceptado_at?: string
+          finalidades_aceptadas?: string[]
           id?: string
+          ip_origen?: string | null
           revocado_at?: string | null
+          revocado_motivo?: string | null
           user_agent?: string | null
           usuario_id?: string
           version_aviso?: string
@@ -372,6 +381,33 @@ export type Database = {
         }
         Relationships: []
       }
+      politicas_tratamiento: {
+        Row: {
+          contenido_md: string
+          created_at: string
+          id: string
+          version: string
+          vigente: boolean
+          vigente_desde: string
+        }
+        Insert: {
+          contenido_md: string
+          created_at?: string
+          id?: string
+          version: string
+          vigente?: boolean
+          vigente_desde?: string
+        }
+        Update: {
+          contenido_md?: string
+          created_at?: string
+          id?: string
+          version?: string
+          vigente?: boolean
+          vigente_desde?: string
+        }
+        Relationships: []
+      }
       programacion_trabajadores: {
         Row: {
           programacion_id: string
@@ -510,6 +546,67 @@ export type Database = {
           },
         ]
       }
+      solicitudes_arco: {
+        Row: {
+          created_at: string
+          descripcion: string
+          empresa_id: string
+          estado: Database["public"]["Enums"]["arco_estado"]
+          id: string
+          respuesta: string | null
+          resuelta_at: string | null
+          resuelta_por: string | null
+          tipo: Database["public"]["Enums"]["arco_tipo"]
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          descripcion: string
+          empresa_id: string
+          estado?: Database["public"]["Enums"]["arco_estado"]
+          id?: string
+          respuesta?: string | null
+          resuelta_at?: string | null
+          resuelta_por?: string | null
+          tipo: Database["public"]["Enums"]["arco_tipo"]
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          descripcion?: string
+          empresa_id?: string
+          estado?: Database["public"]["Enums"]["arco_estado"]
+          id?: string
+          respuesta?: string | null
+          resuelta_at?: string | null
+          resuelta_por?: string | null
+          tipo?: Database["public"]["Enums"]["arco_tipo"]
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_arco_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_arco_resuelta_por_fkey"
+            columns: ["resuelta_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_arco_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_trabajo: {
         Row: {
           id: string
@@ -615,6 +712,13 @@ export type Database = {
       email_is_whitelisted: { Args: { p_email: string }; Returns: boolean }
     }
     Enums: {
+      arco_estado: "pendiente" | "en_revision" | "resuelta" | "rechazada"
+      arco_tipo:
+        | "acceso"
+        | "rectificacion"
+        | "cancelacion"
+        | "oposicion"
+        | "revocacion"
       estado_registro:
         | "pendiente"
         | "hecha"
@@ -757,6 +861,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      arco_estado: ["pendiente", "en_revision", "resuelta", "rechazada"],
+      arco_tipo: [
+        "acceso",
+        "rectificacion",
+        "cancelacion",
+        "oposicion",
+        "revocacion",
+      ],
       estado_registro: [
         "pendiente",
         "hecha",
