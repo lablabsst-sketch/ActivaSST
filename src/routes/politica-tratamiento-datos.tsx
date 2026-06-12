@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -49,8 +50,8 @@ function PoliticaPage() {
       ) : !q.data ? (
         <p>No hay política publicada.</p>
       ) : (
-        <article className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground">
-          {q.data.contenido_md}
+        <article className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary prose-h1:text-2xl prose-h1:font-bold prose-h2:text-lg prose-h2:font-semibold prose-h2:mt-6 prose-h3:text-base prose-h3:font-semibold prose-p:leading-relaxed prose-li:my-1">
+          <ReactMarkdown>{q.data.contenido_md}</ReactMarkdown>
         </article>
       )}
     </main>
