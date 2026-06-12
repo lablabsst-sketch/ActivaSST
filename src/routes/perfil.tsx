@@ -172,13 +172,15 @@ function PerfilPage() {
           </CardContent>
         </Card>
 
+        <ArcoSection />
+
         <Separator />
 
         <Button
           variant="destructive"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="w-full"
+          className="w-full min-h-11"
         >
           {signingOut ? "Cerrando…" : "Cerrar sesión"}
         </Button>
