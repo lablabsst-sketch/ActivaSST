@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, CalendarClock, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
+import { Activity, CalendarClock, FileText, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
 import { ServiceWorkerBadge } from "./sw-badge";
 import { PwaInstallButton } from "./pwa-install-button";
 import { useUsuario } from "@/hooks/use-session";
@@ -24,13 +24,15 @@ type NavItem = {
     | "/prevencionista/trabajadores"
     | "/prevencionista/programaciones"
     | "/prevencionista/pausas"
+    | "/prevencionista/reportes"
     | "/prevencionista/solicitudes-arco"
     | "/trabajador"
     | "/trabajador/historial"
     | "/login"
     | "/diagnostico"
     | "/perfil"
-    | "/politica-tratamiento-datos";
+    | "/politica-tratamiento-datos"
+    | "/terminos-condiciones";
   label: string;
   icon: typeof Home;
   exact?: boolean;
@@ -41,6 +43,7 @@ const prevencionistaNav: NavItem[] = [
   { to: "/prevencionista/trabajadores", label: "Trabaj.", icon: Users },
   { to: "/prevencionista/programaciones", label: "Programas", icon: CalendarClock },
   { to: "/prevencionista/pausas", label: "Pausas", icon: Sparkles },
+  { to: "/prevencionista/reportes", label: "Reportes", icon: FileText },
 ];
 
 const trabajadorNav: NavItem[] = [
@@ -115,12 +118,16 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
+        <main id="main-content" className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
 
         <footer className="mx-auto w-full max-w-md px-4 pb-24 pt-2 text-[10px] text-muted-foreground text-center space-y-0.5">
           <p>
             <Link to="/politica-tratamiento-datos" className="underline hover:text-foreground">
-              Política de Tratamiento de Datos
+              Política Tratamiento Datos
+            </Link>
+            {" · "}
+            <Link to="/terminos-condiciones" className="underline hover:text-foreground">
+              Términos
             </Link>
             {" · "}
             <a
