@@ -24,11 +24,13 @@ type NavItem = {
     | "/prevencionista/trabajadores"
     | "/prevencionista/programaciones"
     | "/prevencionista/pausas"
+    | "/prevencionista/solicitudes-arco"
     | "/trabajador"
     | "/trabajador/historial"
     | "/login"
     | "/diagnostico"
-    | "/perfil";
+    | "/perfil"
+    | "/politica-tratamiento-datos";
   label: string;
   icon: typeof Home;
   exact?: boolean;
