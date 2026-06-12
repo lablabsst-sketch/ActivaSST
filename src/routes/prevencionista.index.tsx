@@ -198,20 +198,52 @@ function PrevencionistaPage() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Card className="cursor-help">
-                  <CardHeader className="pb-2">
-                    <Bell className="size-5 text-primary" />
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">—</p>
-                    <p className="text-xs text-muted-foreground">Alertas</p>
-                  </CardContent>
-                </Card>
+                <Link
+                  to="/prevencionista/trabajadores"
+                  search={
+                    (alertasQuery.data?.count ?? 0) > 0
+                      ? { alerta: "baja_adherencia" as const }
+                      : {}
+                  }
+                  aria-label="Ver trabajadores con baja adherencia"
+                  className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <Card className="cursor-pointer transition hover:shadow-md hover:border-primary/40">
+                    <CardHeader className="pb-2">
+                      <Bell
+                        className={
+                          (alertasQuery.data?.count ?? 0) > 0
+                            ? "size-5 text-destructive"
+                            : "size-5 text-primary"
+                        }
+                      />
+                    </CardHeader>
+                    <CardContent>
+                      <p
+                        className={
+                          (alertasQuery.data?.count ?? 0) > 0
+                            ? "text-2xl font-bold text-destructive"
+                            : "text-2xl font-bold"
+                        }
+                      >
+                        {alertasQuery.isLoading
+                          ? "…"
+                          : alertasQuery.data?.sin_programaciones
+                            ? "—"
+                            : (alertasQuery.data?.count ?? 0)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Alertas</p>
+                    </CardContent>
+                  </Card>
+                </Link>
               </TooltipTrigger>
               <TooltipContent>
-                Próximamente: trabajadores con baja adherencia.
+                {alertasQuery.data?.sin_programaciones
+                  ? "Sin programaciones activas"
+                  : "Trabajadores con adherencia <50% últimos 7 días"}
               </TooltipContent>
             </Tooltip>
+
           </div>
 
           <Link
