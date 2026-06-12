@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Activity, CalendarClock, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
 import { ServiceWorkerBadge } from "./sw-badge";
+import { PwaInstallButton } from "./pwa-install-button";
 import { useUsuario } from "@/hooks/use-session";
 import {
   TooltipProvider,
@@ -70,23 +71,25 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md safe-top">
           <div className="mx-auto flex h-14 w-full max-w-md items-center gap-2 px-4">
             <Activity className="size-6 text-primary" aria-hidden />
             <Link to="/" className="font-semibold tracking-tight">
               Activa <span className="text-primary">SST</span>
             </Link>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <PwaInstallButton />
               <ServiceWorkerBadge />
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-24 pt-4">{children}</main>
+        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
         <nav
           aria-label="Navegación principal"
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur safe-bottom"
         >
+
           {loading ? (
             <ul className="mx-auto grid w-full max-w-md grid-cols-3">
               {[0, 1, 2].map((i) => (
@@ -111,7 +114,8 @@ export function AppShell({ children }: AppShellProps) {
                 <Link
                   to={to}
                   activeOptions={{ exact: exact ?? false }}
-                  className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground data-[status=active]:text-primary"
+                  aria-label={label}
+                  className="flex flex-col items-center justify-center gap-1 py-2.5 min-h-12 text-xs text-muted-foreground data-[status=active]:text-primary"
                 >
                   <Icon className="size-5" aria-hidden />
                   {label}
@@ -123,7 +127,8 @@ export function AppShell({ children }: AppShellProps) {
                 <Link
                   to="/perfil"
                   activeOptions={{ exact: false }}
-                  className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground data-[status=active]:text-primary"
+                  aria-label="Perfil"
+                  className="flex flex-col items-center justify-center gap-1 py-2.5 min-h-12 text-xs text-muted-foreground data-[status=active]:text-primary"
                 >
                   <User className="size-5" aria-hidden />
                   Perfil
@@ -136,13 +141,15 @@ export function AppShell({ children }: AppShellProps) {
                   <Link
                     to={to}
                     activeOptions={{ exact: exact ?? false }}
-                    className="flex flex-col items-center gap-1 py-2 text-[10px] text-muted-foreground/70 data-[status=active]:text-primary"
+                    aria-label={`Dev: ${label}`}
+                    className="flex flex-col items-center justify-center gap-1 py-2 min-h-12 text-[10px] text-muted-foreground/70 data-[status=active]:text-primary"
                   >
                     <Icon className="size-4" aria-hidden />
                     {label}
                   </Link>
                 </li>
               ))}
+
           </ul>
           )}
         </nav>

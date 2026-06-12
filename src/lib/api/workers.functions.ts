@@ -222,3 +222,97 @@ function cupoOrError(err: { message: string }, t: AltaInput): Detalle {
   }
   return { email: t.email, documento: t.documento, resultado: "error", motivo: err.message };
 }
+
+// ============================================================
+// Server Function: resendInvite
+// Reenvía magic link a un trabajador en estado pendiente.
+// ============================================================
+export const resendInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({ usuario_id: z.string().uuid() }),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: caller } = await context.supabase
+      .from("usuarios")
+      .select("empresa_id, rol")
+      .eq("id", context.userId)
+      .single();
+    if (!caller || !["prevencionista", "empresa_admin"].includes(caller.rol)) {
+      throw new Error("No autorizado");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: target, error: tErr } = await supabaseAdmin
+      .from("usuarios")
+      .select("email, empresa_id, estado")
+      .eq("id", data.usuario_id)
+      .single();
+    if (tErr || !target) throw new Error("Trabajador no encontrado");
+    if (target.empresa_id !== caller.empresa_id) throw new Error("Empresa no autorizada");
+
+    const origin = getRequest()?.headers.get("origin") ?? process.env.APP_ORIGIN ?? "";
+    const redirectTo = origin ? `${origin}/onboarding` : undefined;
+    const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      target.email,
+      redirectTo ? { redirectTo } : undefined,
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ============================================================
+// Server Function: updateWorker
+// Edita nombre y tipos de trabajo de un trabajador.
+// ============================================================
+export const updateWorker = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      usuario_id: z.string().uuid(),
+      nombre: z.string().min(1).max(120),
+      tipo_ids: z.array(z.string().uuid()),
+    }),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: caller } = await context.supabase
+      .from("usuarios")
+      .select("empresa_id, rol")
+      .eq("id", context.userId)
+      .single();
+    if (!caller || !["prevencionista", "empresa_admin"].includes(caller.rol)) {
+      throw new Error("No autorizado");
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: target } = await supabaseAdmin
+      .from("usuarios")
+      .select("empresa_id")
+      .eq("id", data.usuario_id)
+      .single();
+    if (!target || target.empresa_id !== caller.empresa_id) {
+      throw new Error("Empresa no autorizada");
+    }
+
+    const { error: updErr } = await supabaseAdmin
+      .from("usuarios")
+      .update({ nombre: data.nombre })
+      .eq("id", data.usuario_id);
+    if (updErr) throw new Error(updErr.message);
+
+    // Reemplaza tipos
+    await supabaseAdmin
+      .from("usuario_tipos_trabajo")
+      .delete()
+      .eq("usuario_id", data.usuario_id);
+    if (data.tipo_ids.length) {
+      const rows = data.tipo_ids.map((tipo_id) => ({
+        usuario_id: data.usuario_id,
+        tipo_id,
+      }));
+      const { error: insErr } = await supabaseAdmin
+        .from("usuario_tipos_trabajo")
+        .insert(rows);
+      if (insErr) throw new Error(insErr.message);
+    }
+    return { ok: true };
+  });
+
