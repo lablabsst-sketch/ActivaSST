@@ -194,3 +194,144 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+interface EmpresaCardProps {
+  empresa: { id: string; nombre: string; logo_url: string | null } | null | undefined;
+  planNombre: string | undefined;
+  loading: boolean;
+  canEdit: boolean;
+  onSaved: () => void;
+}
+
+function EmpresaCard({ empresa, planNombre, loading, canEdit, onSaved }: EmpresaCardProps) {
+  const [editing, setEditing] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (empresa) {
+      setNombre(empresa.nombre);
+      setLogoUrl(empresa.logo_url ?? "");
+    }
+  }, [empresa]);
+
+  const handleSave = async () => {
+    if (!nombre.trim()) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateEmpresa({ data: { nombre: nombre.trim(), logo_url: logoUrl.trim() } });
+      toast.success("Empresa actualizada");
+      setEditing(false);
+      onSaved();
+    } catch (err) {
+      toast.error("No se pudo actualizar", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+        <div className="min-w-0">
+          <CardTitle className="text-base">Empresa</CardTitle>
+          {canEdit && !editing && (
+            <CardDescription className="text-xs">
+              Puedes editar nombre y logo.
+            </CardDescription>
+          )}
+        </div>
+        {canEdit && !editing && empresa && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditing(true)}
+            aria-label="Editar empresa"
+            className="min-touch shrink-0"
+          >
+            <Pencil className="size-4" aria-hidden />
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {loading ? (
+          <p className="text-muted-foreground">Cargando…</p>
+        ) : !empresa ? (
+          <p className="text-muted-foreground">Sin empresa asignada</p>
+        ) : editing ? (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="empresa-nombre">Nombre</Label>
+              <Input
+                id="empresa-nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="min-h-11"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="empresa-logo">URL del logo</Label>
+              <Input
+                id="empresa-logo"
+                type="url"
+                placeholder="https://…/logo.png"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                className="min-h-11"
+              />
+              {logoUrl.trim() && (
+                <div className="mt-1 flex items-center gap-2 rounded-md border p-2">
+                  <img
+                    src={logoUrl}
+                    alt="Vista previa del logo"
+                    className="size-12 rounded object-contain bg-muted"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.opacity = "0.3";
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground truncate">Vista previa</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(false);
+                  setNombre(empresa.nombre);
+                  setLogoUrl(empresa.logo_url ?? "");
+                }}
+                disabled={saving}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} disabled={saving} className="flex-1">
+                {saving ? "Guardando…" : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {empresa.logo_url && (
+              <img
+                src={empresa.logo_url}
+                alt={`Logo de ${empresa.nombre}`}
+                className="size-16 rounded object-contain bg-muted"
+              />
+            )}
+            <Row label="Nombre" value={empresa.nombre} />
+            <Row label="Plan" value={planNombre ?? "—"} />
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
