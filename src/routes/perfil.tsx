@@ -119,23 +119,14 @@ function PerfilPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Empresa</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {empresaQuery.isLoading ? (
-              <p className="text-muted-foreground">Cargando…</p>
-            ) : empresa ? (
-              <>
-                <Row label="Nombre" value={empresa.nombre} />
-                <Row label="Plan" value={planNombre ?? "—"} />
-              </>
-            ) : (
-              <p className="text-muted-foreground">Sin empresa asignada</p>
-            )}
-          </CardContent>
-        </Card>
+        <EmpresaCard
+          empresa={empresa}
+          planNombre={planNombre}
+          loading={empresaQuery.isLoading}
+          canEdit={usuario.rol === "prevencionista" || usuario.rol === "empresa_admin"}
+          onSaved={() => empresaQuery.refetch()}
+        />
+
 
         <Card>
           <CardHeader>
