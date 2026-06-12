@@ -143,4 +143,25 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  /* Focus visible ring global para accesibilidad */
+  *:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .min-touch {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
