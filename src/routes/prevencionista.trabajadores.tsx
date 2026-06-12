@@ -322,7 +322,7 @@ function TrabajadoresPage() {
       />
       <EditTrabajadorDialog
         trabajador={editTarget}
-        onOpenChange={(o) => !o && setEditTarget(null)}
+        onOpenChange={(o: boolean) => !o && setEditTarget(null)}
         onSuccess={() => trabajadoresQuery.refetch()}
       />
     </AppShell>
