@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Activity, CalendarClock, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
 import { ServiceWorkerBadge } from "./sw-badge";
 import { PwaInstallButton } from "./pwa-install-button";
 import { useUsuario } from "@/hooks/use-session";
+import { supabase } from "@/integrations/supabase/client";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
@@ -14,6 +16,7 @@ interface AppShellProps {
   children: ReactNode;
 }
 
+
 type NavItem = {
   to:
     | "/"
@@ -22,6 +25,7 @@ type NavItem = {
     | "/prevencionista/programaciones"
     | "/prevencionista/pausas"
     | "/trabajador"
+    | "/trabajador/historial"
     | "/login"
     | "/diagnostico"
     | "/perfil";
@@ -39,7 +43,9 @@ const prevencionistaNav: NavItem[] = [
 
 const trabajadorNav: NavItem[] = [
   { to: "/trabajador", label: "Inicio", icon: Home, exact: true },
+  { to: "/trabajador/historial", label: "Historial", icon: CalendarClock },
 ];
+
 
 const guestNav: NavItem[] = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
@@ -69,12 +75,34 @@ export function AppShell({ children }: AppShellProps) {
   const showProfile = !loading && !!usuario;
   const isDev = import.meta.env.DEV;
 
+  const empresaQuery = useQuery({
+    queryKey: ["appshell-empresa-logo", usuario?.empresa_id],
+    enabled: !!usuario?.empresa_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("empresas")
+        .select("logo_url")
+        .eq("id", usuario!.empresa_id!)
+        .maybeSingle();
+      return data?.logo_url ?? null;
+    },
+  });
+  const logoUrl = empresaQuery.data;
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md safe-top">
           <div className="mx-auto flex h-14 w-full max-w-md items-center gap-2 px-4">
-            <Activity className="size-6 text-primary" aria-hidden />
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Logo de la empresa"
+                className="size-7 rounded object-contain"
+              />
+            ) : (
+              <Activity className="size-6 text-primary" aria-hidden />
+            )}
             <Link to="/" className="font-semibold tracking-tight">
               Activa <span className="text-primary">SST</span>
             </Link>
@@ -84,6 +112,7 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
         </header>
+
         <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
         <nav
           aria-label="Navegación principal"
