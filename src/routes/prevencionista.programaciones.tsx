@@ -126,10 +126,19 @@ function ProgramacionesPage() {
         </header>
 
         {progsQ.isLoading ? (
-          <p className="text-sm text-muted-foreground">Cargando…</p>
+          <div className="flex flex-col gap-2" aria-busy="true">
+            <div className="h-20 w-full rounded-lg bg-muted animate-pulse" />
+            <div className="h-20 w-full rounded-lg bg-muted animate-pulse" />
+          </div>
+        ) : progsQ.error ? (
+          <Card>
+            <CardContent role="alert" className="pt-6 text-sm text-destructive">
+              No se pudieron cargar las programaciones. Recarga la página.
+            </CardContent>
+          </Card>
         ) : (progsQ.data ?? []).length === 0 ? (
           <Card>
-            <CardContent className="pt-6 text-sm text-muted-foreground">
+            <CardContent className="pt-6 text-sm text-muted-foreground text-center">
               Aún no has creado programaciones. Toca "Nueva" para empezar.
             </CardContent>
           </Card>

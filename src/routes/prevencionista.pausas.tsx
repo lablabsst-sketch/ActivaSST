@@ -5,7 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash2, Inbox } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -112,44 +113,76 @@ function PausasPage() {
         </header>
 
         <h2 className="text-sm font-semibold mt-2">Catálogo base</h2>
-        <ul className="flex flex-col gap-2">
-          {base.map((p) => {
-            const oculta = ocultasQ.data?.has(p.id) ?? false;
-            return (
-              <li key={p.id}>
-                <Card>
-                  <CardContent className="flex items-start justify-between gap-2 py-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{p.titulo}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {p.instrucciones}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {p.codigo} · {p.duracion_min} min
-                      </p>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => toggleHidden(p)}
-                      aria-label={oculta ? "Mostrar" : "Ocultar"}
-                    >
-                      {oculta ? (
-                        <EyeOff className="size-4 text-destructive" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
+        {pausasQ.isLoading ? (
+          <div className="flex flex-col gap-2" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            ))}
+          </div>
+        ) : pausasQ.error ? (
+          <Card>
+            <CardContent role="alert" className="pt-6 text-sm text-destructive">
+              No se pudo cargar el catálogo. Recarga la página.
+            </CardContent>
+          </Card>
+        ) : base.length === 0 ? (
+          <Card>
+            <CardContent className="pt-6 text-sm text-muted-foreground flex flex-col items-center gap-2">
+              <Inbox className="size-8 opacity-50" />
+              <p>Sin pausas en el catálogo base.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {base.map((p) => {
+              const oculta = ocultasQ.data?.has(p.id) ?? false;
+              return (
+                <li key={p.id}>
+                  <Card>
+                    <CardContent className="flex items-start justify-between gap-2 py-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{p.titulo}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {p.instrucciones}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.codigo} · {p.duracion_min} min
+                        </p>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="min-h-11 min-w-11"
+                        onClick={() => toggleHidden(p)}
+                        aria-label={oculta ? "Mostrar" : "Ocultar"}
+                      >
+                        {oculta ? (
+                          <EyeOff className="size-4 text-destructive" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
         <h2 className="text-sm font-semibold mt-4">Custom de tu empresa</h2>
-        {custom.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Aún no has creado pausas propias.</p>
+        {pausasQ.isLoading ? (
+          <Skeleton className="h-16 w-full rounded-lg" />
+        ) : custom.length === 0 ? (
+          <Card>
+            <CardContent className="pt-6 text-sm text-muted-foreground flex flex-col items-center gap-2 text-center">
+              <Inbox className="size-8 opacity-50" />
+              <p>Aún no has creado pausas propias.</p>
+              <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="mt-1">
+                <Plus className="size-4" /> Crear primera
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <ul className="flex flex-col gap-2">
             {custom.map((p) => (
@@ -173,6 +206,7 @@ function PausasPage() {
                     <Button
                       size="icon"
                       variant="ghost"
+                      className="min-h-11 min-w-11"
                       onClick={() => removeCustom(p)}
                       aria-label="Borrar"
                     >
