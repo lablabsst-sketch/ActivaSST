@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrabajadorRouteImport } from './routes/trabajador'
+import { Route as TerminosCondicionesRouteImport } from './routes/terminos-condiciones'
 import { Route as PoliticaTratamientoDatosRouteImport } from './routes/politica-tratamiento-datos'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -30,6 +31,11 @@ import { Route as ApiPublicQaSeedRouteImport } from './routes/api/public/qa-seed
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
   path: '/trabajador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TerminosCondicionesRoute = TerminosCondicionesRouteImport.update({
+  id: '/terminos-condiciones',
+  path: '/terminos-condiciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaTratamientoDatosRoute =
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
+  '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
+  '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
+  '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
+    | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
+    | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
+    | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
@@ -243,6 +255,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PerfilRoute: typeof PerfilRoute
   PoliticaTratamientoDatosRoute: typeof PoliticaTratamientoDatosRoute
+  TerminosCondicionesRoute: typeof TerminosCondicionesRoute
   TrabajadorRoute: typeof TrabajadorRouteWithChildren
   AdminBootstrapRoute: typeof AdminBootstrapRoute
   PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/trabajador'
       fullPath: '/trabajador'
       preLoaderRoute: typeof TrabajadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terminos-condiciones': {
+      id: '/terminos-condiciones'
+      path: '/terminos-condiciones'
+      fullPath: '/terminos-condiciones'
+      preLoaderRoute: typeof TerminosCondicionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politica-tratamiento-datos': {
@@ -399,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PerfilRoute: PerfilRoute,
   PoliticaTratamientoDatosRoute: PoliticaTratamientoDatosRoute,
+  TerminosCondicionesRoute: TerminosCondicionesRoute,
   TrabajadorRoute: TrabajadorRouteWithChildren,
   AdminBootstrapRoute: AdminBootstrapRoute,
   PrevencionistaPausasRoute: PrevencionistaPausasRoute,
