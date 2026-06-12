@@ -64,10 +64,9 @@ export function ReConsentGate() {
   return (
     <Dialog open>
       <DialogContent
-        className="max-w-md"
+        className="max-w-md [&>button.absolute]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        showCloseButton={false}
       >
         <DialogHeader>
           <DialogTitle>Política de tratamiento actualizada</DialogTitle>
