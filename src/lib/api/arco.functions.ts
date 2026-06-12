@@ -89,14 +89,13 @@ export const resolverSolicitudArco = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const patch: Record<string, unknown> = {
+    const resolved = data.estado === "resuelta" || data.estado === "rechazada";
+    const patch = {
       estado: data.estado,
       respuesta: data.respuesta,
+      resuelta_at: resolved ? new Date().toISOString() : null,
+      resuelta_por: resolved ? userId : null,
     };
-    if (data.estado === "resuelta" || data.estado === "rechazada") {
-      patch.resuelta_at = new Date().toISOString();
-      patch.resuelta_por = userId;
-    }
     const { error } = await supabase
       .from("solicitudes_arco")
       .update(patch)

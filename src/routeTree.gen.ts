@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrabajadorRouteImport } from './routes/trabajador'
+import { Route as PoliticaTratamientoDatosRouteImport } from './routes/politica-tratamiento-datos'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
@@ -19,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
 import { Route as TrabajadorHistorialRouteImport } from './routes/trabajador.historial'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
+import { Route as PrevencionistaSolicitudesArcoRouteImport } from './routes/prevencionista.solicitudes-arco'
 import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
@@ -30,6 +32,12 @@ const TrabajadorRoute = TrabajadorRouteImport.update({
   path: '/trabajador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliticaTratamientoDatosRoute =
+  PoliticaTratamientoDatosRouteImport.update({
+    id: '/politica-tratamiento-datos',
+    path: '/politica-tratamiento-datos',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
@@ -76,6 +84,12 @@ const PrevencionistaTrabajadoresRoute =
     path: '/prevencionista/trabajadores',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PrevencionistaSolicitudesArcoRoute =
+  PrevencionistaSolicitudesArcoRouteImport.update({
+    id: '/prevencionista/solicitudes-arco',
+    path: '/prevencionista/solicitudes-arco',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PrevencionistaProgramacionesRoute =
   PrevencionistaProgramacionesRouteImport.update({
     id: '/prevencionista/programaciones',
@@ -110,10 +124,12 @@ export interface FileRoutesByFullPath {
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
+  '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
+  '/prevencionista/solicitudes-arco': typeof PrevencionistaSolicitudesArcoRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
@@ -127,10 +143,12 @@ export interface FileRoutesByTo {
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
+  '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
+  '/prevencionista/solicitudes-arco': typeof PrevencionistaSolicitudesArcoRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
@@ -145,10 +163,12 @@ export interface FileRoutesById {
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRoute
+  '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
+  '/prevencionista/solicitudes-arco': typeof PrevencionistaSolicitudesArcoRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
@@ -164,10 +184,12 @@ export interface FileRouteTypes {
     | '/magic-link'
     | '/onboarding'
     | '/perfil'
+    | '/politica-tratamiento-datos'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
+    | '/prevencionista/solicitudes-arco'
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
@@ -181,10 +203,12 @@ export interface FileRouteTypes {
     | '/magic-link'
     | '/onboarding'
     | '/perfil'
+    | '/politica-tratamiento-datos'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
+    | '/prevencionista/solicitudes-arco'
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista'
@@ -198,10 +222,12 @@ export interface FileRouteTypes {
     | '/magic-link'
     | '/onboarding'
     | '/perfil'
+    | '/politica-tratamiento-datos'
     | '/trabajador'
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
+    | '/prevencionista/solicitudes-arco'
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
@@ -216,10 +242,12 @@ export interface RootRouteChildren {
   MagicLinkRoute: typeof MagicLinkRoute
   OnboardingRoute: typeof OnboardingRoute
   PerfilRoute: typeof PerfilRoute
+  PoliticaTratamientoDatosRoute: typeof PoliticaTratamientoDatosRoute
   TrabajadorRoute: typeof TrabajadorRouteWithChildren
   AdminBootstrapRoute: typeof AdminBootstrapRoute
   PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
   PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
+  PrevencionistaSolicitudesArcoRoute: typeof PrevencionistaSolicitudesArcoRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
   ApiPublicQaSeedRoute: typeof ApiPublicQaSeedRoute
@@ -232,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/trabajador'
       fullPath: '/trabajador'
       preLoaderRoute: typeof TrabajadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politica-tratamiento-datos': {
+      id: '/politica-tratamiento-datos'
+      path: '/politica-tratamiento-datos'
+      fullPath: '/politica-tratamiento-datos'
+      preLoaderRoute: typeof PoliticaTratamientoDatosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -297,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prevencionista/solicitudes-arco': {
+      id: '/prevencionista/solicitudes-arco'
+      path: '/prevencionista/solicitudes-arco'
+      fullPath: '/prevencionista/solicitudes-arco'
+      preLoaderRoute: typeof PrevencionistaSolicitudesArcoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/prevencionista/programaciones': {
       id: '/prevencionista/programaciones'
       path: '/prevencionista/programaciones'
@@ -356,10 +398,12 @@ const rootRouteChildren: RootRouteChildren = {
   MagicLinkRoute: MagicLinkRoute,
   OnboardingRoute: OnboardingRoute,
   PerfilRoute: PerfilRoute,
+  PoliticaTratamientoDatosRoute: PoliticaTratamientoDatosRoute,
   TrabajadorRoute: TrabajadorRouteWithChildren,
   AdminBootstrapRoute: AdminBootstrapRoute,
   PrevencionistaPausasRoute: PrevencionistaPausasRoute,
   PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
+  PrevencionistaSolicitudesArcoRoute: PrevencionistaSolicitudesArcoRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
   ApiPublicQaSeedRoute: ApiPublicQaSeedRoute,
