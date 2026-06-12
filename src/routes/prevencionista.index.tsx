@@ -124,6 +124,13 @@ function PrevencionistaPage() {
       ? Math.round((adherencia7d.data.num / adherencia7d.data.denom) * 100)
       : null;
 
+  const alertasQuery = useQuery({
+    queryKey: ["alertas-baja-adherencia", empresaId],
+    enabled: !!empresaId,
+    queryFn: () => alertasBajaAdherencia(),
+  });
+
+
   return (
     <AppShell>
       <TooltipProvider delayDuration={150}>
