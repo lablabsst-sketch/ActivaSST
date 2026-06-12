@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
+import { Route as TrabajadorHistorialRouteImport } from './routes/trabajador.historial'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
 import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
@@ -64,6 +65,11 @@ const PrevencionistaIndexRoute = PrevencionistaIndexRouteImport.update({
   path: '/prevencionista/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrabajadorHistorialRoute = TrabajadorHistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
+  getParentRoute: () => TrabajadorRoute,
+} as any)
 const PrevencionistaTrabajadoresRoute =
   PrevencionistaTrabajadoresRouteImport.update({
     id: '/prevencionista/trabajadores',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
+  '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
   '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
+  '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
   '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
+  '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
   '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
+    | '/trabajador/historial'
     | '/prevencionista/'
     | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
+    | '/trabajador/historial'
     | '/prevencionista'
     | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
     | '/prevencionista/trabajadores'
+    | '/trabajador/historial'
     | '/prevencionista/'
     | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
@@ -271,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrevencionistaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trabajador/historial': {
+      id: '/trabajador/historial'
+      path: '/historial'
+      fullPath: '/trabajador/historial'
+      preLoaderRoute: typeof TrabajadorHistorialRouteImport
+      parentRoute: typeof TrabajadorRoute
+    }
     '/prevencionista/trabajadores': {
       id: '/prevencionista/trabajadores'
       path: '/prevencionista/trabajadores'
@@ -317,10 +336,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface TrabajadorRouteChildren {
+  TrabajadorHistorialRoute: typeof TrabajadorHistorialRoute
   TrabajadorPausaIdRoute: typeof TrabajadorPausaIdRoute
 }
 
 const TrabajadorRouteChildren: TrabajadorRouteChildren = {
+  TrabajadorHistorialRoute: TrabajadorHistorialRoute,
   TrabajadorPausaIdRoute: TrabajadorPausaIdRoute,
 }
 
