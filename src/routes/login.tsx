@@ -36,7 +36,32 @@ function LoginPage() {
   const NEUTRAL_MESSAGE =
     "Si tu correo está autorizado, recibirás un enlace de acceso en los próximos minutos. Revisa tu bandeja de entrada y spam.";
 
+  // Rate limit cliente: 3 envíos / 60s por email (defensa básica antes de
+  // pegarle a Supabase). Almacenado en localStorage para sobrevivir reload.
+  const checkLocalCooldown = (email: string): number => {
+    if (typeof window === "undefined") return 0;
+    try {
+      const key = `magic-link-attempts:${email.toLowerCase()}`;
+      const raw = window.localStorage.getItem(key);
+      const now = Date.now();
+      const arr: number[] = raw ? JSON.parse(raw) : [];
+      const recent = arr.filter((t) => now - t < 60_000);
+      if (recent.length >= 3) return 60 - Math.floor((now - recent[0]!) / 1000);
+      recent.push(now);
+      window.localStorage.setItem(key, JSON.stringify(recent));
+      return 0;
+    } catch {
+      return 0;
+    }
+  };
+
   const onSubmit = async ({ email }: FormValues) => {
+    const cooldown = checkLocalCooldown(email);
+    if (cooldown > 0) {
+      // No revelamos detalles; mismo mensaje neutro.
+      setSent(true);
+      return;
+    }
     // 1) Pre-check whitelist sin filtrar resultado al usuario.
     const { data: whitelisted } = await supabase.rpc("email_is_whitelisted", {
       p_email: email,
