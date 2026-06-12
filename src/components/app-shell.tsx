@@ -22,6 +22,7 @@ type NavItem = {
     | "/prevencionista/programaciones"
     | "/prevencionista/pausas"
     | "/trabajador"
+    | "/trabajador/historial"
     | "/login"
     | "/diagnostico"
     | "/perfil";
@@ -39,7 +40,9 @@ const prevencionistaNav: NavItem[] = [
 
 const trabajadorNav: NavItem[] = [
   { to: "/trabajador", label: "Inicio", icon: Home, exact: true },
+  { to: "/trabajador/historial", label: "Historial", icon: CalendarClock },
 ];
+
 
 const guestNav: NavItem[] = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
