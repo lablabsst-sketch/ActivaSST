@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
+import { alertasBajaAdherencia } from "@/lib/api/empresa.functions";
+
 
 export const Route = createFileRoute("/prevencionista/")({
   head: () => ({
