@@ -50,8 +50,22 @@ function PoliticaPage() {
       ) : !q.data ? (
         <p>No hay política publicada.</p>
       ) : (
-        <article className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary prose-h1:text-2xl prose-h1:font-bold prose-h2:text-lg prose-h2:font-semibold prose-h2:mt-6 prose-h3:text-base prose-h3:font-semibold prose-p:leading-relaxed prose-li:my-1">
-          <ReactMarkdown>{q.data.contenido_md}</ReactMarkdown>
+        <article className="max-w-none text-foreground text-sm leading-relaxed space-y-3">
+          <ReactMarkdown
+            components={{
+              h1: (p) => <h1 className="text-2xl font-bold mt-2 mb-2" {...p} />,
+              h2: (p) => <h2 className="text-lg font-semibold mt-6 mb-2" {...p} />,
+              h3: (p) => <h3 className="text-base font-semibold mt-4 mb-1" {...p} />,
+              p: (p) => <p className="leading-relaxed" {...p} />,
+              ul: (p) => <ul className="list-disc pl-5 space-y-1" {...p} />,
+              ol: (p) => <ol className="list-decimal pl-5 space-y-1" {...p} />,
+              strong: (p) => <strong className="font-semibold text-foreground" {...p} />,
+              a: (p) => <a className="text-primary underline underline-offset-2" {...p} />,
+              hr: () => <hr className="my-4 border-border" />,
+            }}
+          >
+            {q.data.contenido_md}
+          </ReactMarkdown>
         </article>
       )}
     </main>
