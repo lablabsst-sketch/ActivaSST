@@ -35,6 +35,13 @@ const schema = z.object({
 type Values = z.infer<typeof schema>;
 
 const CONSENT_VERSION = "v1-2026-06";
+const FINALIDADES = [
+  "gestion_pausas_activas",
+  "cumplimiento_sg_sst",
+  "reportes_adherencia",
+  "comunicaciones_operativas",
+  "auditoria_legal",
+];
 
 function OnboardingPage() {
   const navigate = useNavigate();
