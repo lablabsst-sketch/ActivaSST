@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, CalendarClock, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
+import { Activity, CalendarClock, FileText, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
 import { ServiceWorkerBadge } from "./sw-badge";
 import { PwaInstallButton } from "./pwa-install-button";
 import { useUsuario } from "@/hooks/use-session";
