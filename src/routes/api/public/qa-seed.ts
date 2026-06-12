@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getClientIp, rateLimit } from "@/lib/security/rate-limit";
 
-// QA seed endpoint — protegido por BOOTSTRAP_TOKEN.
+// QA seed endpoint — protegido por BOOTSTRAP_TOKEN + rate limit por IP.
 // Crea N usuarios trabajador en una empresa y devuelve magic links.
 
 interface SeedInput {
@@ -20,6 +21,20 @@ export const Route = createFileRoute("/api/public/qa-seed")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const ip = getClientIp(request.headers);
+        const rl = rateLimit(`qa-seed:${ip}`, 5, 60_000);
+        if (!rl.allowed) {
+          return new Response(
+            JSON.stringify({ error: "rate_limited", resetIn: rl.resetIn }),
+            {
+              status: 429,
+              headers: {
+                "content-type": "application/json",
+                "retry-after": String(Math.ceil(rl.resetIn / 1000)),
+              },
+            },
+          );
+        }
         const body = (await request.json()) as SeedInput;
         const expected = process.env.BOOTSTRAP_TOKEN ?? "";
         if (!expected || !timingSafeEqualStr(body.bootstrap_token ?? "", expected)) {

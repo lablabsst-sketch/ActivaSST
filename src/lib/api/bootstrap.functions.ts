@@ -1,5 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import {
+  CEDULA_REGEX,
+  NIT_REGEX,
+  verificarDigitoNit,
+} from "@/lib/validation/nit";
+import { getClientIp, rateLimit } from "@/lib/security/rate-limit";
 
 // ============================================================
 // Server Function: bootstrapPrevencionista
@@ -20,13 +27,19 @@ const inputSchema = z.object({
   bootstrap_token: z.string().min(16),
   empresa: z.object({
     nombre: z.string().min(2),
-    nit: z.string().regex(/^\d{6,15}(-\d)?$/, "NIT inválido"),
+    nit: z
+      .string()
+      .regex(NIT_REGEX, "NIT inválido")
+      .refine(
+        (v) => !v.includes("-") || verificarDigitoNit(v),
+        "Dígito de verificación NIT incorrecto (algoritmo DIAN)",
+      ),
     plan_slug: planSlugEnum,
   }),
   prevencionista: z.object({
     email: z.string().email(),
     nombre: z.string().min(2),
-    documento: z.string().min(5).max(20),
+    documento: z.string().regex(CEDULA_REGEX, "Cédula inválida (6-12 dígitos)"),
   }),
 });
 
@@ -42,6 +55,15 @@ function timingSafeEqualStr(a: string, b: string): boolean {
 export const bootstrapPrevencionista = createServerFn({ method: "POST" })
   .inputValidator((input) => inputSchema.parse(input))
   .handler(async ({ data }) => {
+    const req = getRequest();
+    const ip = req ? getClientIp(req.headers) : "unknown";
+    const rl = rateLimit(`bootstrap:${ip}`, 5, 60_000);
+    if (!rl.allowed) {
+      throw new Error(
+        `Demasiados intentos. Reintenta en ${Math.ceil(rl.resetIn / 1000)}s.`,
+      );
+    }
+
     const expected = process.env.BOOTSTRAP_TOKEN ?? "";
     if (!expected || !timingSafeEqualStr(data.bootstrap_token, expected)) {
       throw new Error("Token inválido");

@@ -95,7 +95,7 @@ export function AltaTrabajadorDialog({ open, onOpenChange, empresaId, onSuccess 
 // ============================================================
 
 const individualSchema = z.object({
-  documento: z.string().min(5, "Cédula muy corta").max(20),
+  documento: z.string().regex(/^\d{6,12}$/, "Cédula: 6 a 12 dígitos"),
   nombre: z.string().min(2),
   apellidos: z.string().min(2),
   email: z.string().email("Correo no válido"),
@@ -324,7 +324,7 @@ function parseMiniPegado(text: string) {
     }
     const [documento, email] = parts;
     const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const validDoc = /^\d{5,20}$/.test(documento);
+    const validDoc = /^\d{6,12}$/.test(documento);
     if (!validEmail || !validDoc) {
       invalid.push({ line, raw: trimmed });
       return;
