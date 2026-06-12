@@ -271,6 +271,26 @@ function PrevencionistaPage() {
               </CardContent>
             </Card>
           </Link>
+
+          <Link
+            to="/prevencionista/solicitudes-arco"
+            className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <Card className="cursor-pointer transition hover:shadow-md hover:border-primary/40">
+              <CardHeader className="pb-2 flex-row items-center gap-2 space-y-0">
+                <CalendarClock className="size-5 text-primary" />
+                <CardTitle className="text-base">Solicitudes Habeas Data</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Atiende solicitudes ARCO de tu equipo. SLA 10 días hábiles.
+                </p>
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
+                  Ver solicitudes <ArrowRight className="size-3" />
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </section>
       </TooltipProvider>
     </AppShell>
