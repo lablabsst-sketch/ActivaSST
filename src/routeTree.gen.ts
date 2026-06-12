@@ -22,6 +22,7 @@ import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista
 import { Route as TrabajadorHistorialRouteImport } from './routes/trabajador.historial'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
 import { Route as PrevencionistaSolicitudesArcoRouteImport } from './routes/prevencionista.solicitudes-arco'
+import { Route as PrevencionistaReportesRouteImport } from './routes/prevencionista.reportes'
 import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
@@ -96,6 +97,11 @@ const PrevencionistaSolicitudesArcoRoute =
     path: '/prevencionista/solicitudes-arco',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PrevencionistaReportesRoute = PrevencionistaReportesRouteImport.update({
+  id: '/prevencionista/reportes',
+  path: '/prevencionista/reportes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrevencionistaProgramacionesRoute =
   PrevencionistaProgramacionesRouteImport.update({
     id: '/prevencionista/programaciones',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
+  '/prevencionista/reportes': typeof PrevencionistaReportesRoute
   '/prevencionista/solicitudes-arco': typeof PrevencionistaSolicitudesArcoRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
+  '/prevencionista/reportes': typeof PrevencionistaReportesRoute
   '/prevencionista/solicitudes-arco': typeof PrevencionistaSolicitudesArcoRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
+  '/prevencionista/reportes': typeof PrevencionistaReportesRoute
   '/prevencionista/solicitudes-arco': typeof PrevencionistaSolicitudesArcoRoute
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
+    | '/prevencionista/reportes'
     | '/prevencionista/solicitudes-arco'
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
+    | '/prevencionista/reportes'
     | '/prevencionista/solicitudes-arco'
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/admin/bootstrap'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
+    | '/prevencionista/reportes'
     | '/prevencionista/solicitudes-arco'
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   AdminBootstrapRoute: typeof AdminBootstrapRoute
   PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
   PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
+  PrevencionistaReportesRoute: typeof PrevencionistaReportesRoute
   PrevencionistaSolicitudesArcoRoute: typeof PrevencionistaSolicitudesArcoRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrevencionistaSolicitudesArcoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prevencionista/reportes': {
+      id: '/prevencionista/reportes'
+      path: '/prevencionista/reportes'
+      fullPath: '/prevencionista/reportes'
+      preLoaderRoute: typeof PrevencionistaReportesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/prevencionista/programaciones': {
       id: '/prevencionista/programaciones'
       path: '/prevencionista/programaciones'
@@ -424,6 +444,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBootstrapRoute: AdminBootstrapRoute,
   PrevencionistaPausasRoute: PrevencionistaPausasRoute,
   PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
+  PrevencionistaReportesRoute: PrevencionistaReportesRoute,
   PrevencionistaSolicitudesArcoRoute: PrevencionistaSolicitudesArcoRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,

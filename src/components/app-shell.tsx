@@ -24,6 +24,7 @@ type NavItem = {
     | "/prevencionista/trabajadores"
     | "/prevencionista/programaciones"
     | "/prevencionista/pausas"
+    | "/prevencionista/reportes"
     | "/prevencionista/solicitudes-arco"
     | "/trabajador"
     | "/trabajador/historial"
@@ -42,6 +43,7 @@ const prevencionistaNav: NavItem[] = [
   { to: "/prevencionista/trabajadores", label: "Trabaj.", icon: Users },
   { to: "/prevencionista/programaciones", label: "Programas", icon: CalendarClock },
   { to: "/prevencionista/pausas", label: "Pausas", icon: Sparkles },
+  { to: "/prevencionista/reportes", label: "Reportes", icon: FileText },
 ];
 
 const trabajadorNav: NavItem[] = [
