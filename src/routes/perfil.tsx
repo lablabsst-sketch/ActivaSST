@@ -2,12 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
+import { updateEmpresa } from "@/lib/api/empresa.functions";
+
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Mi perfil — Activa SST" }] }),
