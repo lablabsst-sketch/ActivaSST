@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import { updateEmpresa } from "@/lib/api/empresa.functions";
+import { ArcoSection } from "@/components/arco-section";
 
 
 export const Route = createFileRoute("/perfil")({
