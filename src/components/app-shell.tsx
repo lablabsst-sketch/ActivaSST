@@ -71,23 +71,25 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md safe-top">
           <div className="mx-auto flex h-14 w-full max-w-md items-center gap-2 px-4">
             <Activity className="size-6 text-primary" aria-hidden />
             <Link to="/" className="font-semibold tracking-tight">
               Activa <span className="text-primary">SST</span>
             </Link>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <PwaInstallButton />
               <ServiceWorkerBadge />
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-24 pt-4">{children}</main>
+        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
         <nav
           aria-label="Navegación principal"
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur safe-bottom"
         >
+
           {loading ? (
             <ul className="mx-auto grid w-full max-w-md grid-cols-3">
               {[0, 1, 2].map((i) => (
