@@ -145,6 +145,7 @@ function OnboardingPage() {
         usuario_id: usuario.id,
         version_aviso: CONSENT_VERSION,
         user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        finalidades_aceptadas: FINALIDADES,
       });
       if (consErr) throw consErr;
 
