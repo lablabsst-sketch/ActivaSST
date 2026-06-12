@@ -34,13 +34,14 @@ function PerfilPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("empresas")
-        .select("id, nombre, plan_id, planes(nombre, max_trabajadores)")
+        .select("id, nombre, logo_url, plan_id, planes(nombre, max_trabajadores)")
         .eq("id", usuario!.empresa_id!)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
+
 
   const tiposQuery = useQuery({
     queryKey: ["perfil-tipos", usuario?.id],
