@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -49,8 +50,22 @@ function PoliticaPage() {
       ) : !q.data ? (
         <p>No hay política publicada.</p>
       ) : (
-        <article className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground">
-          {q.data.contenido_md}
+        <article className="max-w-none text-foreground text-sm leading-relaxed space-y-3">
+          <ReactMarkdown
+            components={{
+              h1: (p) => <h1 className="text-2xl font-bold mt-2 mb-2" {...p} />,
+              h2: (p) => <h2 className="text-lg font-semibold mt-6 mb-2" {...p} />,
+              h3: (p) => <h3 className="text-base font-semibold mt-4 mb-1" {...p} />,
+              p: (p) => <p className="leading-relaxed" {...p} />,
+              ul: (p) => <ul className="list-disc pl-5 space-y-1" {...p} />,
+              ol: (p) => <ol className="list-decimal pl-5 space-y-1" {...p} />,
+              strong: (p) => <strong className="font-semibold text-foreground" {...p} />,
+              a: (p) => <a className="text-primary underline underline-offset-2" {...p} />,
+              hr: () => <hr className="my-4 border-border" />,
+            }}
+          >
+            {q.data.contenido_md}
+          </ReactMarkdown>
         </article>
       )}
     </main>

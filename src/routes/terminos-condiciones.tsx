@@ -16,7 +16,7 @@ export const Route = createFileRoute("/terminos-condiciones")({
 
 function TerminosPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 prose prose-sm prose-slate dark:prose-invert">
+    <main className="mx-auto max-w-3xl px-4 py-8 text-sm leading-relaxed text-foreground space-y-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mt-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_a]:text-primary [&_a]:underline">
       <h1>Términos y Condiciones</h1>
       <p className="text-xs text-muted-foreground">Versión 1.0 · Vigente desde junio de 2026</p>
 
