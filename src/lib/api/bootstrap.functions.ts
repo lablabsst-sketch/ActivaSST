@@ -113,7 +113,7 @@ export const bootstrapPrevencionista = createServerFn({ method: "POST" })
 
     // 4. Crear auth user con el MISMO UUID
     const origin = process.env.APP_ORIGIN ?? "";
-    const redirectTo = origin ? `${origin}/onboarding` : undefined;
+    const redirectTo = origin ? `${origin}/magic-link` : undefined;
 
     const { data: invited, error: invErr } =
       await supabaseAdmin.auth.admin.createUser({

@@ -1,31 +1,136 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { MailCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Loader2, MailWarning } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/magic-link")({
   head: () => ({
     meta: [
-      { title: "Enlace mágico — Activa SST" },
-      { name: "description", content: "Revisa tu correo para entrar a Activa SST." },
+      { title: "Validando enlace — Activa SST" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: MagicLinkPage,
 });
 
+type Status = "loading" | "error";
+
 function MagicLinkPage() {
+  const navigate = useNavigate();
+  const [status, setStatus] = useState<Status>("loading");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const routeForUser = async (userId: string) => {
+      const { data: usuario, error } = await supabase
+        .from("usuarios")
+        .select("rol, estado")
+        .eq("id", userId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error || !usuario) {
+        setErrorMsg("Tu cuenta no está registrada. Pide acceso a tu prevencionista.");
+        setStatus("error");
+        return;
+      }
+      if (usuario.estado === "pendiente") {
+        navigate({ to: "/onboarding", replace: true });
+        return;
+      }
+      if (usuario.estado === "activo") {
+        const dest = usuario.rol === "trabajador" ? "/trabajador" : "/prevencionista";
+        navigate({ to: dest, replace: true });
+        return;
+      }
+      setErrorMsg("Tu cuenta está inactiva. Contacta a tu prevencionista.");
+      setStatus("error");
+    };
+
+    const run = async () => {
+      try {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code");
+        const hashParams = new URLSearchParams(
+          window.location.hash.startsWith("#")
+            ? window.location.hash.slice(1)
+            : window.location.hash,
+        );
+        const hashError =
+          hashParams.get("error_description") ?? hashParams.get("error");
+        const queryError =
+          url.searchParams.get("error_description") ?? url.searchParams.get("error");
+        if (hashError || queryError) {
+          setErrorMsg(hashError ?? queryError ?? "Enlace inválido");
+          setStatus("error");
+          return;
+        }
+
+        // PKCE flow: ?code=...
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            setErrorMsg(error.message);
+            setStatus("error");
+            return;
+          }
+        }
+        // Implicit flow (#access_token=...) is auto-handled by detectSessionInUrl.
+
+        // Limpia URL para que no quede el token visible.
+        window.history.replaceState({}, "", "/magic-link");
+
+        // Pequeño polling: detectSessionInUrl puede tardar un tick.
+        for (let i = 0; i < 20; i++) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user?.id) {
+            await routeForUser(data.session.user.id);
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 150));
+          if (cancelled) return;
+        }
+
+        setErrorMsg("No pudimos validar tu enlace. Puede haber expirado o ya fue usado.");
+        setStatus("error");
+      } catch (err) {
+        if (cancelled) return;
+        setErrorMsg(err instanceof Error ? err.message : "Error inesperado");
+        setStatus("error");
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  if (status === "loading") {
+    return (
+      <AppShell>
+        <section className="flex flex-col items-center gap-4 pt-16 text-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+          <h1 className="text-xl font-semibold tracking-tight">Validando enlace…</h1>
+          <p className="text-sm text-muted-foreground">Un momento, estamos iniciando sesión.</p>
+        </section>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <section className="flex flex-col items-center gap-4 pt-10 text-center">
-        <div className="rounded-full bg-accent p-4 text-accent-foreground">
-          <MailCheck className="size-8 text-primary" />
+        <div className="rounded-full bg-destructive/10 p-4">
+          <MailWarning className="size-8 text-destructive" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Revisa tu correo</h1>
-        <p className="max-w-xs text-sm text-muted-foreground">
-          Te enviamos un enlace mágico. Ábrelo desde este mismo dispositivo para iniciar sesión.
-        </p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link to="/login">Volver</Link>
+        <h1 className="text-2xl font-bold tracking-tight">Tu enlace expiró o ya fue usado</h1>
+        <p className="max-w-xs text-sm text-muted-foreground">{errorMsg}</p>
+        <Button asChild className="mt-2">
+          <Link to="/login">Pedir nuevo enlace</Link>
         </Button>
       </section>
     </AppShell>
