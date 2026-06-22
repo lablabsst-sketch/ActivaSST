@@ -2,12 +2,23 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pause, Play, RotateCcw } from "lucide-react";
-import { AppShell } from "@/components/app-shell";
+import { Pause, Play, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
+import { PauseSuccessOverlay } from "@/components/pause-success-overlay";
+import { StateLoading } from "@/components/states";
 
 export const Route = createFileRoute("/trabajador/pausa/$id")({
   head: () => ({ meta: [{ title: "Pausa — Activa SST" }] }),
@@ -18,6 +29,8 @@ function PausaPage() {
   const { id: programacionId } = Route.useParams();
   const navigate = useNavigate();
   const { usuario } = useUsuario();
+  const [confirmExit, setConfirmExit] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const progQ = useQuery({
     queryKey: ["prog-detalle", programacionId],
@@ -51,6 +64,7 @@ function PausaPage() {
   const [submitting, setSubmitting] = useState(false);
   const startedAtRef = useRef<number | null>(null);
   const elapsedAtPauseRef = useRef(0);
+  const vibratedRef = useRef(false);
 
   useEffect(() => {
     if (secsLeft === null && pausa) {
@@ -66,6 +80,14 @@ function PausaPage() {
         if (s <= 1) {
           clearInterval(id);
           setRunning(false);
+          if (!vibratedRef.current) {
+            vibratedRef.current = true;
+            try {
+              navigator.vibrate?.([200, 80, 200]);
+            } catch {
+              // noop
+            }
+          }
           return 0;
         }
         return s - 1;
@@ -90,6 +112,7 @@ function PausaPage() {
     startedAtRef.current = null;
     elapsedAtPauseRef.current = 0;
     setSecsLeft(durMin * 60);
+    vibratedRef.current = false;
   };
 
   const elapsedSec = () => {
@@ -112,10 +135,18 @@ function PausaPage() {
         response_uuid: crypto.randomUUID(),
       });
       if (error) throw error;
-      toast.success(estado === "hecha" ? "¡Pausa completada!" : "Te recordaremos en 15 min");
-      navigate({ to: "/trabajador" });
+      if (estado === "hecha") {
+        setShowSuccess(true);
+      } else {
+        toast.success("Te recordaremos pronto", {
+          description: "Marcamos esta pausa como postpuesta",
+        });
+        navigate({ to: "/trabajador" });
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error");
+      toast.error("Algo no salió bien", {
+        description: err instanceof Error ? err.message : "Reintenta o contacta soporte",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -127,21 +158,43 @@ function PausaPage() {
     return `${m}:${ss.toString().padStart(2, "0")}`;
   };
 
+  const handleExit = () => {
+    if (elapsedSec() > 0 || running) setConfirmExit(true);
+    else navigate({ to: "/trabajador" });
+  };
+
   return (
-    <AppShell>
-      <section className="flex flex-col gap-4 pt-2">
+    <div className="min-h-dvh bg-background text-foreground flex flex-col">
+      <header className="flex items-center justify-between px-4 py-3 safe-top">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleExit}
+          aria-label="Salir de la pausa"
+        >
+          <X className="size-5" />
+        </Button>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          Modo enfoque
+        </p>
+        <div className="w-9" />
+      </header>
+
+      <main className="mx-auto w-full max-w-md flex-1 px-4 pb-8 flex flex-col gap-5">
         {progQ.isLoading || !pausa ? (
-          <p className="text-sm text-muted-foreground">Cargando…</p>
+          <StateLoading />
         ) : (
           <>
-            <header>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Pausa</p>
+            <header className="text-center">
               <h1 className="text-2xl font-bold tracking-tight">{pausa.titulo}</h1>
             </header>
 
             <Card>
-              <CardContent className="flex flex-col items-center gap-4 py-8">
-                <p className="text-6xl font-bold tabular-nums text-primary">
+              <CardContent className="flex flex-col items-center gap-4 py-10">
+                <p
+                  className="text-7xl font-bold tabular-nums text-primary"
+                  aria-live="polite"
+                >
                   {fmt(secsLeft ?? 0)}
                 </p>
                 <div className="flex gap-2">
@@ -151,10 +204,16 @@ function PausaPage() {
                     </Button>
                   ) : (
                     <Button onClick={start} size="lg" disabled={secsLeft === 0}>
-                      <Play className="size-5" /> {secsLeft === durMin * 60 ? "Empezar" : "Continuar"}
+                      <Play className="size-5" />{" "}
+                      {secsLeft === durMin * 60 ? "Empezar" : "Continuar"}
                     </Button>
                   )}
-                  <Button onClick={reset} size="lg" variant="ghost" aria-label="Reiniciar">
+                  <Button
+                    onClick={reset}
+                    size="lg"
+                    variant="ghost"
+                    aria-label="Reiniciar"
+                  >
                     <RotateCcw className="size-5" />
                   </Button>
                 </div>
@@ -163,10 +222,7 @@ function PausaPage() {
 
             {pausa.video_url && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Video guía</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="p-2">
                   <div className="aspect-video w-full overflow-hidden rounded-md bg-muted">
                     <iframe
                       src={pausa.video_url}
@@ -185,13 +241,16 @@ function PausaPage() {
                 <CardTitle className="text-base">Instrucciones</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-line text-sm">{pausa.instrucciones}</p>
+                <p className="whitespace-pre-line text-sm leading-relaxed">
+                  {pausa.instrucciones}
+                </p>
               </CardContent>
             </Card>
 
-            <div className="flex gap-2">
+            <div className="sticky bottom-4 mt-auto flex gap-2">
               <Button
-                className="flex-1"
+                size="lg"
+                className="flex-1 text-base"
                 onClick={() => registrar("hecha")}
                 disabled={submitting}
               >
@@ -199,6 +258,7 @@ function PausaPage() {
               </Button>
               <Button
                 variant="outline"
+                size="lg"
                 className="flex-1"
                 onClick={() => registrar("postpuesta")}
                 disabled={submitting}
@@ -208,7 +268,28 @@ function PausaPage() {
             </div>
           </>
         )}
-      </section>
-    </AppShell>
+      </main>
+
+      <AlertDialog open={confirmExit} onOpenChange={setConfirmExit}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Salir sin completar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si sales ahora, no se registrará esta pausa. Puedes retomarla más tarde desde tu inicio.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Seguir aquí</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate({ to: "/trabajador" })}>
+              Salir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {showSuccess && (
+        <PauseSuccessOverlay onClose={() => navigate({ to: "/trabajador" })} />
+      )}
+    </div>
   );
 }
