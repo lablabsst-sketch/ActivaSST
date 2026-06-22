@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import type { Database } from "@/integrations/supabase/types";
 
+import { PasswordFields, validatePassword } from "@/components/password-fields";
+
 type TipoTrabajo = Database["public"]["Tables"]["tipos_trabajo"]["Row"];
 
 export const Route = createFileRoute("/onboarding")({

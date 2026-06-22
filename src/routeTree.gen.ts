@@ -25,6 +25,7 @@ import { Route as PrevencionistaSolicitudesArcoRouteImport } from './routes/prev
 import { Route as PrevencionistaReportesRouteImport } from './routes/prevencionista.reportes'
 import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
+import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
 import { Route as ApiPublicQaSeedRouteImport } from './routes/api/public/qa-seed'
@@ -113,6 +114,12 @@ const PrevencionistaPausasRoute = PrevencionistaPausasRouteImport.update({
   path: '/prevencionista/pausas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilConfigurarPasswordRoute =
+  PerfilConfigurarPasswordRouteImport.update({
+    id: '/configurar-password',
+    path: '/configurar-password',
+    getParentRoute: () => PerfilRoute,
+  } as any)
 const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
   id: '/admin/bootstrap',
   path: '/admin/bootstrap',
@@ -135,11 +142,12 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
-  '/perfil': typeof PerfilRoute
+  '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/reportes': typeof PrevencionistaReportesRoute
@@ -156,11 +164,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
-  '/perfil': typeof PerfilRoute
+  '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/reportes': typeof PrevencionistaReportesRoute
@@ -178,11 +187,12 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
-  '/perfil': typeof PerfilRoute
+  '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
   '/prevencionista/reportes': typeof PrevencionistaReportesRoute
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
     | '/prevencionista/reportes'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
     | '/prevencionista/reportes'
@@ -248,6 +260,7 @@ export interface FileRouteTypes {
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
     | '/prevencionista/reportes'
@@ -265,7 +278,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MagicLinkRoute: typeof MagicLinkRoute
   OnboardingRoute: typeof OnboardingRoute
-  PerfilRoute: typeof PerfilRoute
+  PerfilRoute: typeof PerfilRouteWithChildren
   PoliticaTratamientoDatosRoute: typeof PoliticaTratamientoDatosRoute
   TerminosCondicionesRoute: typeof TerminosCondicionesRoute
   TrabajadorRoute: typeof TrabajadorRouteWithChildren
@@ -393,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrevencionistaPausasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/perfil/configurar-password': {
+      id: '/perfil/configurar-password'
+      path: '/configurar-password'
+      fullPath: '/perfil/configurar-password'
+      preLoaderRoute: typeof PerfilConfigurarPasswordRouteImport
+      parentRoute: typeof PerfilRoute
+    }
     '/admin/bootstrap': {
       id: '/admin/bootstrap'
       path: '/admin/bootstrap'
@@ -417,6 +437,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PerfilRouteChildren {
+  PerfilConfigurarPasswordRoute: typeof PerfilConfigurarPasswordRoute
+}
+
+const PerfilRouteChildren: PerfilRouteChildren = {
+  PerfilConfigurarPasswordRoute: PerfilConfigurarPasswordRoute,
+}
+
+const PerfilRouteWithChildren =
+  PerfilRoute._addFileChildren(PerfilRouteChildren)
+
 interface TrabajadorRouteChildren {
   TrabajadorHistorialRoute: typeof TrabajadorHistorialRoute
   TrabajadorPausaIdRoute: typeof TrabajadorPausaIdRoute
@@ -437,7 +468,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MagicLinkRoute: MagicLinkRoute,
   OnboardingRoute: OnboardingRoute,
-  PerfilRoute: PerfilRoute,
+  PerfilRoute: PerfilRouteWithChildren,
   PoliticaTratamientoDatosRoute: PoliticaTratamientoDatosRoute,
   TerminosCondicionesRoute: TerminosCondicionesRoute,
   TrabajadorRoute: TrabajadorRouteWithChildren,
