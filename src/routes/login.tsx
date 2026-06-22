@@ -32,6 +32,21 @@ function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
+  // Si llegan tokens en la URL (config legacy o redirect mal configurado),
+  // reenviamos a /magic-link conservando hash y query.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash ?? "";
+    const search = window.location.search ?? "";
+    const hasToken =
+      hash.includes("access_token=") ||
+      hash.includes("error=") ||
+      /[?&](code|token_hash|error)=/.test(search);
+    if (hasToken) {
+      window.location.replace(`/magic-link${search}${hash}`);
+    }
+  }, []);
+
   // Mensaje neutro siempre (FR-019): no revela si el email está en whitelist.
   const NEUTRAL_MESSAGE =
     "Si tu correo está autorizado, recibirás un enlace de acceso en los próximos minutos. Revisa tu bandeja de entrada y spam.";
