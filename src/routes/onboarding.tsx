@@ -120,8 +120,24 @@ function OnboardingPage() {
 
   const onSubmit = async (values: Values) => {
     if (!usuario) return;
+    const pwErr = validatePassword(pw);
+    if (pwErr) {
+      toast.error(pwErr);
+      return;
+    }
+    if (pw !== pwConfirm) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
     setSubmitting(true);
     try {
+      // 0) Crea la contraseña del usuario para login futuro con cédula.
+      const { error: pwError } = await supabase.auth.updateUser({ password: pw });
+      if (pwError) throw pwError;
+      await (
+        supabase as unknown as { rpc: (n: string) => Promise<{ error: unknown }> }
+      ).rpc("mark_password_set");
+
       // 1) Actualiza nombre + estado=activo.
       const { error: updErr } = await supabase
         .from("usuarios")
