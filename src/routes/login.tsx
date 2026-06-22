@@ -337,10 +337,7 @@ function MagicForm({ onSent }: { onSent: () => void }) {
 function ForgotLink() {
   return (
     <p className="pt-3 text-center text-xs text-muted-foreground">
-      ¿Olvidaste tu contraseña?{" "}
-      <Link to="/login" search={{ tab: "magic" }} className="text-primary underline-offset-4 hover:underline">
-        Pide un enlace por correo
-      </Link>
+      ¿Olvidaste tu contraseña? Usa la pestaña <strong>Magic link</strong> para recibir un enlace por correo.
     </p>
   );
 }
