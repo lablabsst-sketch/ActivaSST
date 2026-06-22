@@ -239,6 +239,23 @@ function OnboardingPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle className="text-sm">Crea tu contraseña</CardTitle>
+              <CardDescription className="text-xs">
+                Para que la próxima vez entres rápido con tu cédula. Mínimo 8 caracteres, 1 mayúscula y 1 número.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PasswordFields
+                password={pw}
+                confirm={pwConfirm}
+                onPassword={setPw}
+                onConfirm={setPwConfirm}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle className="text-sm">Tratamiento de datos personales</CardTitle>
               <CardDescription className="text-xs">
                 En cumplimiento de la Ley 1581 de 2012 (Habeas Data).
