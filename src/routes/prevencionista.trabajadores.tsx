@@ -48,6 +48,8 @@ function TrabajadoresPage() {
   const [resending, setResending] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<FiltroEstado>("todos");
   const [search, setSearch] = useState("");
+  const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
+  const rowRefs = useMemo(() => new Map<string, HTMLLIElement>(), []);
 
   const trabajadoresQuery = useQuery({
     queryKey: ["trabajadores", usuario?.empresa_id],
@@ -242,12 +244,12 @@ function TrabajadoresPage() {
                   <div className="space-y-1">
                     <p className="font-medium">
                       {trabajadores.length === 0
-                        ? "Aún no hay trabajadores"
-                        : "Sin resultados"}
+                        ? "Aún no hay nadie en tu equipo"
+                        : "Aún no hay nada por aquí"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {trabajadores.length === 0
-                        ? "Agrega el primero para empezar."
+                        ? "Agrega al primero ↑"
                         : "Ajusta filtros o búsqueda."}
                     </p>
                   </div>
@@ -261,10 +263,21 @@ function TrabajadoresPage() {
               )}
 
             <ul className="space-y-2">
-              {filtrados.map((t) => (
+              {filtrados.map((t) => {
+                const isNew =
+                  lastCreatedAt > 0 &&
+                  new Date(t.created_at).getTime() >= lastCreatedAt;
+                return (
                 <li
                   key={t.id}
-                  className="rounded-lg border border-border bg-card p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                  ref={(el) => {
+                    if (el) rowRefs.set(t.id, el);
+                    else rowRefs.delete(t.id);
+                  }}
+                  className={
+                    "rounded-lg border border-border bg-card p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between " +
+                    (isNew ? "animate-pulse-green" : "")
+                  }
                 >
                   <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -308,7 +321,8 @@ function TrabajadoresPage() {
                     )}
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </CardContent>
         </Card>
@@ -318,7 +332,22 @@ function TrabajadoresPage() {
         open={openAlta}
         onOpenChange={setOpenAlta}
         empresaId={usuario?.empresa_id}
-        onSuccess={() => trabajadoresQuery.refetch()}
+        onSuccess={async () => {
+          const ts = Date.now() - 5000;
+          setLastCreatedAt(ts);
+          await trabajadoresQuery.refetch();
+          setTimeout(() => {
+            const newest = trabajadoresQuery.data?.find(
+              (t) => new Date(t.created_at).getTime() >= ts,
+            );
+            if (newest) {
+              const el = rowRefs.get(newest.id);
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            // limpia el highlight tras 3s
+            setTimeout(() => setLastCreatedAt(0), 3000);
+          }, 100);
+        }}
       />
       <EditTrabajadorDialog
         trabajador={editTarget}

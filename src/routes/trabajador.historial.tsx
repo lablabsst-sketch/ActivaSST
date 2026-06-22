@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { CalendarX, AlertCircle, ArrowLeft, Check, Clock, SkipForward } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarX, ArrowLeft, Check, Clock, SkipForward } from "lucide-react";
 import { useMemo } from "react";
 import { AppShell } from "@/components/app-shell";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
+import { StateError } from "@/components/states";
+import { usePullToRefresh, PullIndicator } from "@/hooks/use-pull-to-refresh";
 
 export const Route = createFileRoute("/trabajador/historial")({
   head: () => ({ meta: [{ title: "Historial — Activa SST" }] }),
@@ -30,6 +31,7 @@ interface RegistroRow {
 function HistorialPage() {
   const { usuario } = useUsuario();
   const trabajadorId = usuario?.id;
+  const qc = useQueryClient();
 
   const registrosQuery = useQuery({
     queryKey: ["historial", trabajadorId],
@@ -49,6 +51,10 @@ function HistorialPage() {
       return (data ?? []) as unknown as RegistroRow[];
     },
   });
+
+  const ptr = usePullToRefresh(() =>
+    qc.invalidateQueries({ queryKey: ["historial"] }),
+  );
 
   const registros = registrosQuery.data ?? [];
 
@@ -78,6 +84,7 @@ function HistorialPage() {
 
   return (
     <AppShell>
+      <PullIndicator {...ptr} />
       <section className="flex flex-col gap-4 pt-2">
         <header className="space-y-1">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Mi actividad</p>
@@ -97,16 +104,10 @@ function HistorialPage() {
         )}
 
         {registrosQuery.isError && (
-          <Alert variant="destructive">
-            <AlertCircle className="size-4" aria-hidden />
-            <AlertTitle>Error al cargar historial</AlertTitle>
-            <AlertDescription className="flex items-center justify-between gap-2">
-              <span className="text-xs">{registrosQuery.error.message}</span>
-              <Button size="sm" variant="outline" onClick={() => registrosQuery.refetch()}>
-                Reintentar
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <StateError
+            onRetry={() => registrosQuery.refetch()}
+            message={registrosQuery.error.message}
+          />
         )}
 
         {!registrosQuery.isLoading && !registrosQuery.isError && registros.length === 0 && (
@@ -114,7 +115,7 @@ function HistorialPage() {
             <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
               <CalendarX className="size-12 text-muted-foreground/40" aria-hidden />
               <div className="space-y-1">
-                <p className="font-medium">Aún no has completado pausas</p>
+                <p className="font-medium">Aún no hay nada por aquí</p>
                 <p className="text-xs text-muted-foreground">
                   Cuando hagas tu primera pausa aparecerá aquí.
                 </p>

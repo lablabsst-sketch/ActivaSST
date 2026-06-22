@@ -89,7 +89,7 @@ function PerfilPage() {
   if (loading || !usuario) {
     return (
       <AppShell>
-        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
+        <p className="pt-8 text-center text-sm text-muted-foreground">Un momento…</p>
       </AppShell>
     );
   }
@@ -136,7 +136,7 @@ function PerfilPage() {
           </CardHeader>
           <CardContent className="text-sm">
             {tiposQuery.isLoading ? (
-              <p className="text-muted-foreground">Cargando…</p>
+              <p className="text-muted-foreground">Un momento…</p>
             ) : tipos.length ? (
               <ul className="list-disc pl-5 space-y-1">
                 {tipos.map((t) => (
@@ -156,7 +156,7 @@ function PerfilPage() {
           </CardHeader>
           <CardContent className="text-sm">
             {consentQuery.isLoading ? (
-              <p className="text-muted-foreground">Cargando…</p>
+              <p className="text-muted-foreground">Un momento…</p>
             ) : consentQuery.data ? (
               <div className="space-y-1">
                 <Row label="Versión" value={consentQuery.data.version_aviso} />
@@ -385,7 +385,7 @@ function EmpresaCard({ empresa, planNombre, loading, canEdit, onSaved }: Empresa
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {loading ? (
-          <p className="text-muted-foreground">Cargando…</p>
+          <p className="text-muted-foreground">Un momento…</p>
         ) : !empresa ? (
           <p className="text-muted-foreground">Sin empresa asignada</p>
         ) : editing ? (
