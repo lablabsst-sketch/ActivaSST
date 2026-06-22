@@ -5,6 +5,7 @@ import { Activity, CalendarClock, FileText, Home, LogIn, ShieldCheck, Stethoscop
 import { ServiceWorkerBadge } from "./sw-badge";
 import { PwaInstallButton } from "./pwa-install-button";
 import { ReConsentGate } from "./re-consent-gate";
+import { CommandPalette } from "./command-palette";
 import { useUsuario } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -121,6 +122,9 @@ export function AppShell({ children }: AppShellProps) {
 
         <main id="main-content" className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4">{children}</main>
         <ReConsentGate />
+        {(usuario?.rol === "prevencionista" || usuario?.rol === "empresa_admin") && (
+          <CommandPalette />
+        )}
 
         <footer className="mx-auto w-full max-w-md px-4 pb-24 pt-2 text-[10px] text-muted-foreground text-center space-y-0.5">
           <p>
