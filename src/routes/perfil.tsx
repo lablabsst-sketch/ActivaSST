@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import { updateEmpresa } from "@/lib/api/empresa.functions";
 import { ArcoSection } from "@/components/arco-section";
+import { PasswordFields, validatePassword } from "@/components/password-fields";
 
 
 export const Route = createFileRoute("/perfil")({
