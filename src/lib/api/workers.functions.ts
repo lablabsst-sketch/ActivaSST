@@ -77,7 +77,7 @@ export const importWorkers = createServerFn({ method: "POST" })
       data.modo === "individual" ? [data.trabajador] : data.trabajadores;
 
     const origin = getRequest()?.headers.get("origin") ?? process.env.APP_ORIGIN ?? "";
-    const redirectTo = origin ? `${origin}/onboarding` : undefined;
+    const redirectTo = origin ? `${origin}/magic-link` : undefined;
 
     const detalles: Detalle[] = [];
     let creados = 0;
