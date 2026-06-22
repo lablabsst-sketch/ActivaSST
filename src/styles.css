@@ -165,3 +165,12 @@
   }
 }
 
+
+/* Highlight a newly created row */
+@keyframes pulse-green-row {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: oklch(0.93 0.13 150 / 0.45); }
+}
+.animate-pulse-green {
+  animation: pulse-green-row 1s ease-in-out 3;
+}
