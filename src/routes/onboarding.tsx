@@ -49,6 +49,8 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const { session, usuario, loading } = useUsuario();
   const [submitting, setSubmitting] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
 
   const tiposQuery = useQuery({
     queryKey: ["tipos-trabajo"],
