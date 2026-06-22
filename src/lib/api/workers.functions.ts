@@ -251,7 +251,7 @@ export const resendInvite = createServerFn({ method: "POST" })
     if (target.empresa_id !== caller.empresa_id) throw new Error("Empresa no autorizada");
 
     const origin = getRequest()?.headers.get("origin") ?? process.env.APP_ORIGIN ?? "";
-    const redirectTo = origin ? `${origin}/onboarding` : undefined;
+    const redirectTo = origin ? `${origin}/magic-link` : undefined;
     const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       target.email,
       redirectTo ? { redirectTo } : undefined,
