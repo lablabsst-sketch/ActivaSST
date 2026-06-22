@@ -258,7 +258,7 @@ function PrevencionistaPage() {
               <CardContent>
                 <p className="text-sm">
                   {programasActivosCount.isLoading
-                    ? "Cargando…"
+                    ? "Un momento…"
                     : (programasActivosCount.data ?? 0) === 0
                     ? "Aún no has configurado programaciones."
                     : `${programasActivosCount.data} programación${
