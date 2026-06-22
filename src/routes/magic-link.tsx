@@ -15,7 +15,7 @@ export const Route = createFileRoute("/magic-link")({
   component: MagicLinkPage,
 });
 
-type Status = "loading" | "error";
+type Status = "loading" | "error" | "already_used";
 
 function MagicLinkPage() {
   const navigate = useNavigate();
@@ -26,15 +26,18 @@ function MagicLinkPage() {
     let cancelled = false;
 
     const routeForUser = async (userId: string) => {
-      // ¿Tiene password? Si no, forzar configurar.
+      // ¿Tiene password? Si SÍ, este enlace ya fue usado (es de invitación única).
       const { data: pwSet } = await (
         supabase as unknown as {
           rpc: (n: string) => Promise<{ data: boolean | null }>;
         }
       ).rpc("current_password_set");
       if (cancelled) return;
-      if (!pwSet) {
-        navigate({ to: "/perfil/configurar-password", replace: true });
+      if (pwSet) {
+        // Cerrar sesión para que entre con su password
+        await supabase.auth.signOut();
+        if (cancelled) return;
+        setStatus("already_used");
         return;
       }
       const { data: usuario, error } = await supabase
@@ -48,19 +51,13 @@ function MagicLinkPage() {
         setStatus("error");
         return;
       }
-      if (usuario.estado === "pendiente") {
-        navigate({ to: "/onboarding", replace: true });
+      if (usuario.estado === "inactivo") {
+        setErrorMsg("Tu cuenta está inactiva. Contacta a tu prevencionista.");
+        setStatus("error");
         return;
       }
-      if (usuario.estado === "activo") {
-        navigate({
-          to: usuario.rol === "trabajador" ? "/trabajador" : "/prevencionista",
-          replace: true,
-        });
-        return;
-      }
-      setErrorMsg("Tu cuenta está inactiva. Contacta a tu prevencionista.");
-      setStatus("error");
+      // password_set=false → siempre a configurar contraseña
+      navigate({ to: "/perfil/configurar-password", replace: true });
     };
 
     const run = async () => {

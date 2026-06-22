@@ -22,8 +22,6 @@ export const Route = createFileRoute("/login")({
 });
 
 const NEUTRAL_ERROR = "Credenciales inválidas. Verifica tus datos e intenta de nuevo.";
-const NEUTRAL_MAGIC =
-  "Si tu correo está autorizado, recibirás un enlace de acceso en los próximos minutos.";
 
 // ---------- Rate limit por cédula (5/min, lock 15min) ----------
 const LOCK_KEY = (c: string) => `login-lock:${c}`;
@@ -57,7 +55,6 @@ function pushAttempt(cedula: string): { locked: boolean; remaining: number } {
   }
 }
 
-// Esquemas
 const cedulaSchema = z.object({
   cedula: z.string().trim().min(4, "Cédula no válida"),
   password: z.string().min(1, "Ingresa tu contraseña"),
@@ -66,12 +63,10 @@ const emailSchema = z.object({
   email: z.string().email("Correo no válido"),
   password: z.string().min(1, "Ingresa tu contraseña"),
 });
-const magicSchema = z.object({ email: z.string().email("Correo no válido") });
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"cedula" | "email" | "magic">("cedula");
-  const [sentMagic, setSentMagic] = useState(false);
+  const [tab, setTab] = useState<"cedula" | "email">("cedula");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -82,7 +77,10 @@ function LoginPage() {
       hash.includes("error=") ||
       /[?&](code|token_hash|error)=/.test(search)
     ) {
-      window.location.replace(`/magic-link${search}${hash}`);
+      // Si parece recovery, redirige a restablecer; si no, a magic-link.
+      const isRecovery = hash.includes("type=recovery") || /[?&]type=recovery/.test(search);
+      const dest = isRecovery ? "/restablecer-password" : "/magic-link";
+      window.location.replace(`${dest}${search}${hash}`);
     }
   }, []);
 
@@ -97,42 +95,21 @@ function LoginPage() {
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="cedula">Cédula</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="magic">Magic link</TabsTrigger>
           </TabsList>
 
           <TabsContent value="cedula" className="pt-4">
-            <CedulaForm onSuccess={(rol) => routeByRol(rol, navigate)} />
+            <CedulaForm onSuccess={(uid) => routeByRol(uid, navigate)} />
             <ForgotLink />
           </TabsContent>
 
           <TabsContent value="email" className="pt-4">
-            <EmailForm onSuccess={(rol) => routeByRol(rol, navigate)} />
+            <EmailForm onSuccess={(uid) => routeByRol(uid, navigate)} />
             <ForgotLink />
           </TabsContent>
-
-          <TabsContent value="magic" className="pt-4">
-            {sentMagic ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">{NEUTRAL_MAGIC}</p>
-                <Button variant="outline" onClick={() => setSentMagic(false)}>
-                  Usar otro correo
-                </Button>
-              </div>
-            ) : (
-              <MagicForm onSent={() => setSentMagic(true)} />
-            )}
-          </TabsContent>
         </Tabs>
-
-        <p className="text-center text-xs text-muted-foreground">
-          ¿Ya tienes el enlace?{" "}
-          <Link to="/magic-link" className="text-primary underline-offset-4 hover:underline">
-            Ábrelo aquí
-          </Link>
-        </p>
       </section>
     </AppShell>
   );
@@ -142,7 +119,6 @@ async function routeByRol(
   userId: string,
   navigate: ReturnType<typeof useNavigate>,
 ) {
-  // Check password_set; si falso → forzar
   const { data: pwSet } = await (
     supabase as unknown as { rpc: (n: string) => Promise<{ data: boolean | null }> }
   ).rpc("current_password_set");
@@ -179,7 +155,6 @@ function CedulaForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
       toast.error(`Demasiados intentos. Reintenta en ${Math.ceil(left / 60)} min.`);
       return;
     }
-    // Buscar email
     const { data: email } = await (
       supabase as unknown as {
         rpc: (n: string, args: Record<string, string>) => Promise<{ data: string | null }>;
@@ -293,51 +268,15 @@ function EmailForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
   );
 }
 
-function MagicForm({ onSent }: { onSent: () => void }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<z.infer<typeof magicSchema>>({ resolver: zodResolver(magicSchema) });
-  const onSubmit = async (v: z.infer<typeof magicSchema>) => {
-    const { data: ok } = await supabase.rpc("email_is_whitelisted", { p_email: v.email });
-    if (ok) {
-      const redirectTo =
-        typeof window !== "undefined" ? `${window.location.origin}/magic-link` : undefined;
-      await supabase.auth.signInWithOtp({
-        email: v.email,
-        options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
-      });
-    }
-    onSent();
-  };
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <p className="text-xs text-muted-foreground">
-        Te enviaremos un enlace para entrar sin contraseña. Úsalo solo si olvidaste la tuya.
-      </p>
-      <div className="space-y-1.5">
-        <Label htmlFor="magic-email">Correo</Label>
-        <Input
-          id="magic-email"
-          type="email"
-          autoComplete="email"
-          placeholder="tu@empresa.co"
-          {...register("email")}
-        />
-        {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
-      </div>
-      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Enviando…" : "Enviar enlace"}
-      </Button>
-    </form>
-  );
-}
-
 function ForgotLink() {
   return (
     <p className="pt-3 text-center text-xs text-muted-foreground">
-      ¿Olvidaste tu contraseña? Usa la pestaña <strong>Magic link</strong> para recibir un enlace por correo.
+      <Link
+        to="/recuperar-password"
+        className="text-primary underline-offset-4 hover:underline"
+      >
+        ¿Olvidaste tu contraseña?
+      </Link>
     </p>
   );
 }

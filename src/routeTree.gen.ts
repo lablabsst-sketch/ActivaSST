@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrabajadorRouteImport } from './routes/trabajador'
 import { Route as TerminosCondicionesRouteImport } from './routes/terminos-condiciones'
+import { Route as RestablecerPasswordRouteImport } from './routes/restablecer-password'
+import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
 import { Route as PoliticaTratamientoDatosRouteImport } from './routes/politica-tratamiento-datos'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -26,6 +28,7 @@ import { Route as PrevencionistaReportesRouteImport } from './routes/prevencioni
 import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
 import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
+import { Route as AdminReinvitarRouteImport } from './routes/admin.reinvitar'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
 import { Route as ApiPublicQaSeedRouteImport } from './routes/api/public/qa-seed'
@@ -38,6 +41,16 @@ const TrabajadorRoute = TrabajadorRouteImport.update({
 const TerminosCondicionesRoute = TerminosCondicionesRouteImport.update({
   id: '/terminos-condiciones',
   path: '/terminos-condiciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestablecerPasswordRoute = RestablecerPasswordRouteImport.update({
+  id: '/restablecer-password',
+  path: '/restablecer-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarPasswordRoute = RecuperarPasswordRouteImport.update({
+  id: '/recuperar-password',
+  path: '/recuperar-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaTratamientoDatosRoute =
@@ -120,6 +133,11 @@ const PerfilConfigurarPasswordRoute =
     path: '/configurar-password',
     getParentRoute: () => PerfilRoute,
   } as any)
+const AdminReinvitarRoute = AdminReinvitarRouteImport.update({
+  id: '/admin/reinvitar',
+  path: '/admin/reinvitar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
   id: '/admin/bootstrap',
   path: '/admin/bootstrap',
@@ -144,9 +162,12 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
+  '/recuperar-password': typeof RecuperarPasswordRoute
+  '/restablecer-password': typeof RestablecerPasswordRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/admin/reinvitar': typeof AdminReinvitarRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
@@ -166,9 +187,12 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
+  '/recuperar-password': typeof RecuperarPasswordRoute
+  '/restablecer-password': typeof RestablecerPasswordRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/admin/reinvitar': typeof AdminReinvitarRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
@@ -189,9 +213,12 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
+  '/recuperar-password': typeof RecuperarPasswordRoute
+  '/restablecer-password': typeof RestablecerPasswordRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
+  '/admin/reinvitar': typeof AdminReinvitarRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
@@ -213,9 +240,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
+    | '/recuperar-password'
+    | '/restablecer-password'
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/admin/reinvitar'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
@@ -235,9 +265,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
+    | '/recuperar-password'
+    | '/restablecer-password'
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/admin/reinvitar'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
@@ -257,9 +290,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
+    | '/recuperar-password'
+    | '/restablecer-password'
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
+    | '/admin/reinvitar'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
@@ -280,9 +316,12 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PerfilRoute: typeof PerfilRouteWithChildren
   PoliticaTratamientoDatosRoute: typeof PoliticaTratamientoDatosRoute
+  RecuperarPasswordRoute: typeof RecuperarPasswordRoute
+  RestablecerPasswordRoute: typeof RestablecerPasswordRoute
   TerminosCondicionesRoute: typeof TerminosCondicionesRoute
   TrabajadorRoute: typeof TrabajadorRouteWithChildren
   AdminBootstrapRoute: typeof AdminBootstrapRoute
+  AdminReinvitarRoute: typeof AdminReinvitarRoute
   PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
   PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
   PrevencionistaReportesRoute: typeof PrevencionistaReportesRoute
@@ -306,6 +345,20 @@ declare module '@tanstack/react-router' {
       path: '/terminos-condiciones'
       fullPath: '/terminos-condiciones'
       preLoaderRoute: typeof TerminosCondicionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restablecer-password': {
+      id: '/restablecer-password'
+      path: '/restablecer-password'
+      fullPath: '/restablecer-password'
+      preLoaderRoute: typeof RestablecerPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar-password': {
+      id: '/recuperar-password'
+      path: '/recuperar-password'
+      fullPath: '/recuperar-password'
+      preLoaderRoute: typeof RecuperarPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politica-tratamiento-datos': {
@@ -413,6 +466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilConfigurarPasswordRouteImport
       parentRoute: typeof PerfilRoute
     }
+    '/admin/reinvitar': {
+      id: '/admin/reinvitar'
+      path: '/admin/reinvitar'
+      fullPath: '/admin/reinvitar'
+      preLoaderRoute: typeof AdminReinvitarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/bootstrap': {
       id: '/admin/bootstrap'
       path: '/admin/bootstrap'
@@ -470,9 +530,12 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PerfilRoute: PerfilRouteWithChildren,
   PoliticaTratamientoDatosRoute: PoliticaTratamientoDatosRoute,
+  RecuperarPasswordRoute: RecuperarPasswordRoute,
+  RestablecerPasswordRoute: RestablecerPasswordRoute,
   TerminosCondicionesRoute: TerminosCondicionesRoute,
   TrabajadorRoute: TrabajadorRouteWithChildren,
   AdminBootstrapRoute: AdminBootstrapRoute,
+  AdminReinvitarRoute: AdminReinvitarRoute,
   PrevencionistaPausasRoute: PrevencionistaPausasRoute,
   PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
   PrevencionistaReportesRoute: PrevencionistaReportesRoute,
@@ -484,13 +547,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
