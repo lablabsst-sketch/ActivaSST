@@ -297,7 +297,7 @@ function TrabajadoresPage() {
                     >
                       <Pencil className="size-4" aria-hidden />
                     </Button>
-                    {t.estado === "pendiente" && (
+                    {t.estado === "pendiente" && !t.password_set && (
                       <Button
                         size="sm"
                         variant="ghost"

@@ -122,6 +122,25 @@ function MagicLinkPage() {
     );
   }
 
+  if (status === "already_used") {
+    return (
+      <AppShell>
+        <section className="flex flex-col items-center gap-4 pt-10 text-center">
+          <div className="rounded-full bg-primary/10 p-4">
+            <MailWarning className="size-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Este enlace ya fue usado</h1>
+          <p className="max-w-xs text-sm text-muted-foreground">
+            Inicia sesión con tu contraseña habitual.
+          </p>
+          <Button asChild className="mt-2">
+            <Link to="/login">Ir a iniciar sesión</Link>
+          </Button>
+        </section>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <section className="flex flex-col items-center gap-4 pt-10 text-center">
@@ -133,9 +152,10 @@ function MagicLinkPage() {
           {errorMsg} ¿Quieres uno nuevo?
         </p>
         <Button asChild className="mt-2">
-          <Link to="/login">Pedir nuevo enlace</Link>
+          <Link to="/recuperar-password">Recuperar acceso</Link>
         </Button>
       </section>
     </AppShell>
   );
 }
+

@@ -244,11 +244,16 @@ export const resendInvite = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: target, error: tErr } = await supabaseAdmin
       .from("usuarios")
-      .select("email, empresa_id, estado")
+      .select("email, empresa_id, estado, password_set")
       .eq("id", data.usuario_id)
       .single();
     if (tErr || !target) throw new Error("Trabajador no encontrado");
     if (target.empresa_id !== caller.empresa_id) throw new Error("Empresa no autorizada");
+    if (target.password_set) {
+      throw new Error(
+        "Este usuario ya configuró contraseña. Pídele que use ¿Olvidaste tu contraseña? en /login.",
+      );
+    }
 
     const origin = getRequest()?.headers.get("origin") ?? process.env.APP_ORIGIN ?? "";
     const redirectTo = origin ? `${origin}/magic-link` : undefined;
