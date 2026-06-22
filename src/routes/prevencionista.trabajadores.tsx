@@ -321,7 +321,8 @@ function TrabajadoresPage() {
                     )}
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </CardContent>
         </Card>
@@ -331,7 +332,22 @@ function TrabajadoresPage() {
         open={openAlta}
         onOpenChange={setOpenAlta}
         empresaId={usuario?.empresa_id}
-        onSuccess={() => trabajadoresQuery.refetch()}
+        onSuccess={async () => {
+          const ts = Date.now() - 5000;
+          setLastCreatedAt(ts);
+          await trabajadoresQuery.refetch();
+          setTimeout(() => {
+            const newest = trabajadoresQuery.data?.find(
+              (t) => new Date(t.created_at).getTime() >= ts,
+            );
+            if (newest) {
+              const el = rowRefs.get(newest.id);
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            // limpia el highlight tras 3s
+            setTimeout(() => setLastCreatedAt(0), 3000);
+          }, 100);
+        }}
       />
       <EditTrabajadorDialog
         trabajador={editTarget}
