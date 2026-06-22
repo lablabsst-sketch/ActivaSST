@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import type { Database } from "@/integrations/supabase/types";
 
+import { PasswordFields, validatePassword } from "@/components/password-fields";
+
 type TipoTrabajo = Database["public"]["Tables"]["tipos_trabajo"]["Row"];
 
 export const Route = createFileRoute("/onboarding")({
@@ -47,6 +49,8 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const { session, usuario, loading } = useUsuario();
   const [submitting, setSubmitting] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
 
   const tiposQuery = useQuery({
     queryKey: ["tipos-trabajo"],
@@ -116,8 +120,24 @@ function OnboardingPage() {
 
   const onSubmit = async (values: Values) => {
     if (!usuario) return;
+    const pwErr = validatePassword(pw);
+    if (pwErr) {
+      toast.error(pwErr);
+      return;
+    }
+    if (pw !== pwConfirm) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
     setSubmitting(true);
     try {
+      // 0) Crea la contraseña del usuario para login futuro con cédula.
+      const { error: pwError } = await supabase.auth.updateUser({ password: pw });
+      if (pwError) throw pwError;
+      await (
+        supabase as unknown as { rpc: (n: string) => Promise<{ error: unknown }> }
+      ).rpc("mark_password_set");
+
       // 1) Actualiza nombre + estado=activo.
       const { error: updErr } = await supabase
         .from("usuarios")
@@ -216,6 +236,23 @@ function OnboardingPage() {
               <p className="text-xs text-destructive">{errors.tipoIds.message}</p>
             )}
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Crea tu contraseña</CardTitle>
+              <CardDescription className="text-xs">
+                Para que la próxima vez entres rápido con tu cédula. Mínimo 8 caracteres, 1 mayúscula y 1 número.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PasswordFields
+                password={pw}
+                confirm={pwConfirm}
+                onPassword={setPw}
+                onConfirm={setPwConfirm}
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

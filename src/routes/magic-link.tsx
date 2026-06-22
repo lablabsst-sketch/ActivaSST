@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/magic-link")({
   head: () => ({
     meta: [
-      { title: "Validando enlace — Activa SST" },
+      { title: "Verificando enlace — Activa SST" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -26,6 +26,17 @@ function MagicLinkPage() {
     let cancelled = false;
 
     const routeForUser = async (userId: string) => {
+      // ¿Tiene password? Si no, forzar configurar.
+      const { data: pwSet } = await (
+        supabase as unknown as {
+          rpc: (n: string) => Promise<{ data: boolean | null }>;
+        }
+      ).rpc("current_password_set");
+      if (cancelled) return;
+      if (!pwSet) {
+        navigate({ to: "/perfil/configurar-password", replace: true });
+        return;
+      }
       const { data: usuario, error } = await supabase
         .from("usuarios")
         .select("rol, estado")
@@ -42,8 +53,10 @@ function MagicLinkPage() {
         return;
       }
       if (usuario.estado === "activo") {
-        const dest = usuario.rol === "trabajador" ? "/trabajador" : "/prevencionista";
-        navigate({ to: dest, replace: true });
+        navigate({
+          to: usuario.rol === "trabajador" ? "/trabajador" : "/prevencionista",
+          replace: true,
+        });
         return;
       }
       setErrorMsg("Tu cuenta está inactiva. Contacta a tu prevencionista.");
@@ -59,8 +72,7 @@ function MagicLinkPage() {
             ? window.location.hash.slice(1)
             : window.location.hash,
         );
-        const hashError =
-          hashParams.get("error_description") ?? hashParams.get("error");
+        const hashError = hashParams.get("error_description") ?? hashParams.get("error");
         const queryError =
           url.searchParams.get("error_description") ?? url.searchParams.get("error");
         if (hashError || queryError) {
@@ -68,8 +80,6 @@ function MagicLinkPage() {
           setStatus("error");
           return;
         }
-
-        // PKCE flow: ?code=...
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
@@ -78,12 +88,7 @@ function MagicLinkPage() {
             return;
           }
         }
-        // Implicit flow (#access_token=...) is auto-handled by detectSessionInUrl.
-
-        // Limpia URL para que no quede el token visible.
         window.history.replaceState({}, "", "/magic-link");
-
-        // Pequeño polling: detectSessionInUrl puede tardar un tick.
         for (let i = 0; i < 20; i++) {
           const { data } = await supabase.auth.getSession();
           if (data.session?.user?.id) {
@@ -93,8 +98,7 @@ function MagicLinkPage() {
           await new Promise((r) => setTimeout(r, 150));
           if (cancelled) return;
         }
-
-        setErrorMsg("No pudimos validar tu enlace. Puede haber expirado o ya fue usado.");
+        setErrorMsg("Este enlace expiró o ya fue usado.");
         setStatus("error");
       } catch (err) {
         if (cancelled) return;
@@ -114,7 +118,7 @@ function MagicLinkPage() {
       <AppShell>
         <section className="flex flex-col items-center gap-4 pt-16 text-center">
           <Loader2 className="size-8 animate-spin text-primary" />
-          <h1 className="text-xl font-semibold tracking-tight">Validando enlace…</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Verificando…</h1>
           <p className="text-sm text-muted-foreground">Un momento, estamos iniciando sesión.</p>
         </section>
       </AppShell>
@@ -127,8 +131,10 @@ function MagicLinkPage() {
         <div className="rounded-full bg-destructive/10 p-4">
           <MailWarning className="size-8 text-destructive" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Tu enlace expiró o ya fue usado</h1>
-        <p className="max-w-xs text-sm text-muted-foreground">{errorMsg}</p>
+        <h1 className="text-2xl font-bold tracking-tight">Este enlace expiró</h1>
+        <p className="max-w-xs text-sm text-muted-foreground">
+          {errorMsg} ¿Quieres uno nuevo?
+        </p>
         <Button asChild className="mt-2">
           <Link to="/login">Pedir nuevo enlace</Link>
         </Button>

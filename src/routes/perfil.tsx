@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import { updateEmpresa } from "@/lib/api/empresa.functions";
 import { ArcoSection } from "@/components/arco-section";
+import { PasswordFields, validatePassword } from "@/components/password-fields";
 
 
 export const Route = createFileRoute("/perfil")({
@@ -174,6 +175,8 @@ function PerfilPage() {
 
         <ArcoSection />
 
+        <SecuritySection />
+
         <Separator />
 
         <Button
@@ -186,6 +189,124 @@ function PerfilPage() {
         </Button>
       </section>
     </AppShell>
+  );
+}
+
+function SecuritySection() {
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState("");
+  const [pw, setPw] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [signingAll, setSigningAll] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const err = validatePassword(pw);
+    if (err) return toast.error(err);
+    if (pw !== confirm) return toast.error("Las contraseñas no coinciden");
+    setSaving(true);
+    try {
+      // Reautenticar con la contraseña actual.
+      const { data: u } = await supabase.auth.getUser();
+      const email = u.user?.email;
+      if (email && current) {
+        const { error: reErr } = await supabase.auth.signInWithPassword({
+          email,
+          password: current,
+        });
+        if (reErr) {
+          toast.error("Contraseña actual incorrecta");
+          setSaving(false);
+          return;
+        }
+      }
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) throw error;
+      await (supabase as unknown as { rpc: (n: string) => Promise<unknown> }).rpc(
+        "mark_password_set",
+      );
+      toast.success("Contraseña actualizada");
+      setOpen(false);
+      setCurrent("");
+      setPw("");
+      setConfirm("");
+    } catch (err) {
+      toast.error("No se pudo actualizar", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const signOutAll = async () => {
+    setSigningAll(true);
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+      toast.success("Se cerraron todas las sesiones");
+      window.location.assign("/login");
+    } catch (err) {
+      toast.error("No se pudo cerrar", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+      setSigningAll(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Seguridad</CardTitle>
+        <CardDescription className="text-xs">
+          Gestiona tu contraseña y tus sesiones activas.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {!open ? (
+          <Button variant="outline" className="w-full min-h-11" onClick={() => setOpen(true)}>
+            Cambiar contraseña
+          </Button>
+        ) : (
+          <form onSubmit={submit} className="space-y-3 rounded-md border p-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="cur-pw">Contraseña actual</Label>
+              <Input
+                id="cur-pw"
+                type="password"
+                autoComplete="current-password"
+                value={current}
+                onChange={(e) => setCurrent(e.target.value)}
+                className="min-h-11"
+              />
+            </div>
+            <PasswordFields
+              password={pw}
+              confirm={confirm}
+              onPassword={setPw}
+              onConfirm={setConfirm}
+              idPrefix="new"
+            />
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" className="flex-1" disabled={saving}>
+                {saving ? "Guardando…" : "Guardar"}
+              </Button>
+            </div>
+          </form>
+        )}
+        <Button
+          variant="outline"
+          className="w-full min-h-11"
+          onClick={signOutAll}
+          disabled={signingAll}
+        >
+          {signingAll ? "Cerrando…" : "Cerrar todas las sesiones"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
