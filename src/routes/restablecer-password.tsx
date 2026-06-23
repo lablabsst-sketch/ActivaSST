@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PasswordFields, validatePassword } from "@/components/password-fields";
 import { supabase } from "@/integrations/supabase/client";
+import { logAuthEvent } from "@/lib/auth-telemetry";
 
 export const Route = createFileRoute("/restablecer-password")({
   head: () => ({

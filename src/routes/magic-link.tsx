@@ -4,6 +4,7 @@ import { Loader2, MailWarning } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { logAuthEvent } from "@/lib/auth-telemetry";
 
 export const Route = createFileRoute("/magic-link")({
   head: () => ({
