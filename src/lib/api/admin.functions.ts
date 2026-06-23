@@ -10,6 +10,7 @@ import { z } from "zod";
 const inputSchema = z.object({
   bootstrap_token: z.string().min(16),
   email: z.string().email(),
+  origin: z.string().url().optional(),
 });
 
 function timingSafeEqualStr(a: string, b: string): boolean {
@@ -29,7 +30,7 @@ export const regenerateInviteLink = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
-    const origin = process.env.APP_ORIGIN ?? "";
+    const origin = data.origin ?? process.env.APP_ORIGIN ?? "";
     const redirectTo = origin ? `${origin}/magic-link` : undefined;
 
     const { data: row, error: rowErr } = await supabaseAdmin

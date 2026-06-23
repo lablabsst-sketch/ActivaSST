@@ -27,6 +27,11 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+function getCurrentOrigin(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return window.location.origin;
+}
+
 function ReinvitarPage() {
   const fn = useServerFn(regenerateInviteLink);
   const [link, setLink] = useState<string | null>(null);
@@ -39,7 +44,7 @@ function ReinvitarPage() {
 
   const onSubmit = async (v: FormValues) => {
     try {
-      const res = await fn({ data: v });
+      const res = await fn({ data: { ...v, origin: getCurrentOrigin() } });
       setLink(res.action_link);
       toast.success("Link generado. Cópialo y entrégaselo al usuario.");
     } catch (err) {
