@@ -36,16 +36,31 @@ function RestablecerPasswordPage() {
       try {
         const url = new URL(window.location.href);
         const code = url.searchParams.get("code");
+        const hashParams = new URLSearchParams(
+          window.location.hash.startsWith("#")
+            ? window.location.hash.slice(1)
+            : window.location.hash,
+        );
+        logAuthEvent("recovery.visit", {
+          hasCode: Boolean(code),
+          hasHash: Boolean(window.location.hash),
+        });
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
+            logAuthEvent("recovery.exchange_error", { error: error.message });
             if (!cancelled) setStatus("invalid");
             return;
           }
+          logAuthEvent("recovery.exchange_ok");
           window.history.replaceState({}, "", "/restablecer-password");
         }
         const { data } = await supabase.auth.getSession();
         if (data.session) {
+          logAuthEvent("recovery.session_ready", {
+            userId: data.session.user.id,
+            via: code ? "code" : "hash",
+          });
           if (!cancelled) setStatus("ready");
           return;
         }
@@ -53,6 +68,7 @@ function RestablecerPasswordPage() {
         const { data: sub } = supabase.auth.onAuthStateChange((event) => {
           if (cancelled) return;
           if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+            logAuthEvent("recovery.password_recovery_event", { event });
             setStatus("ready");
           }
         });
@@ -61,11 +77,19 @@ function RestablecerPasswordPage() {
         setTimeout(() => {
           if (!cancelled) {
             supabase.auth.getSession().then(({ data: d }) => {
-              if (!cancelled && !d.session) setStatus("invalid");
+              if (!cancelled && !d.session) {
+                logAuthEvent("recovery.session_timeout", {
+                  hasHashParam: hashParams.has("access_token"),
+                });
+                setStatus("invalid");
+              }
             });
           }
         }, 4000);
-      } catch {
+      } catch (err) {
+        logAuthEvent("recovery.exchange_error", {
+          error: err instanceof Error ? err.message : String(err),
+        });
         if (!cancelled) setStatus("invalid");
       }
     };
@@ -89,9 +113,13 @@ function RestablecerPasswordPage() {
         "mark_password_set",
       );
       await supabase.auth.signOut();
+      logAuthEvent("recovery.update_ok");
       toast.success("Contraseña actualizada. Inicia sesión.");
       navigate({ to: "/login", replace: true });
     } catch (err) {
+      logAuthEvent("recovery.update_error", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       toast.error("No se pudo actualizar", {
         description: err instanceof Error ? err.message : String(err),
       });
