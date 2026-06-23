@@ -111,12 +111,17 @@ function MagicLinkPage() {
         for (let i = 0; i < 20; i++) {
           const { data } = await supabase.auth.getSession();
           if (data.session?.user?.id) {
+            logAuthEvent("magic_link.session_ready", {
+              userId: data.session.user.id,
+              waitMs: i * 150,
+            });
             await routeForUser(data.session.user.id);
             return;
           }
           await new Promise((r) => setTimeout(r, 150));
           if (cancelled) return;
         }
+        logAuthEvent("magic_link.session_timeout");
         setErrorMsg("Este enlace expiró o ya fue usado.");
         setStatus("error");
       } catch (err) {
