@@ -4,6 +4,7 @@ import { Loader2, MailWarning } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { logAuthEvent } from "@/lib/auth-telemetry";
 
 export const Route = createFileRoute("/magic-link")({
   head: () => ({
@@ -37,6 +38,7 @@ function MagicLinkPage() {
         // Cerrar sesión para que entre con su password
         await supabase.auth.signOut();
         if (cancelled) return;
+        logAuthEvent("magic_link.already_used", { userId });
         setStatus("already_used");
         return;
       }
@@ -47,16 +49,25 @@ function MagicLinkPage() {
         .maybeSingle();
       if (cancelled) return;
       if (error || !usuario) {
+        logAuthEvent("magic_link.user_lookup_error", {
+          userId,
+          error: error?.message,
+        });
         setErrorMsg("Tu cuenta no está registrada. Pide acceso a tu prevencionista.");
         setStatus("error");
         return;
       }
       if (usuario.estado === "inactivo") {
+        logAuthEvent("magic_link.account_inactive", { userId });
         setErrorMsg("Tu cuenta está inactiva. Contacta a tu prevencionista.");
         setStatus("error");
         return;
       }
       // password_set=false → siempre a configurar contraseña
+      logAuthEvent("magic_link.route_to_password_setup", {
+        userId,
+        rol: usuario.rol,
+      });
       navigate({ to: "/perfil/configurar-password", replace: true });
     };
 
@@ -72,29 +83,45 @@ function MagicLinkPage() {
         const hashError = hashParams.get("error_description") ?? hashParams.get("error");
         const queryError =
           url.searchParams.get("error_description") ?? url.searchParams.get("error");
+        logAuthEvent("magic_link.visit", {
+          hasCode: Boolean(code),
+          hasHashError: Boolean(hashError),
+          hasQueryError: Boolean(queryError),
+        });
         if (hashError || queryError) {
+          logAuthEvent("magic_link.url_error", {
+            reason: hashError ?? queryError,
+          });
           setErrorMsg(hashError ?? queryError ?? "Enlace inválido");
           setStatus("error");
           return;
         }
         if (code) {
+          logAuthEvent("magic_link.exchange_start");
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
+            logAuthEvent("magic_link.exchange_error", { error: error.message });
             setErrorMsg(error.message);
             setStatus("error");
             return;
           }
+          logAuthEvent("magic_link.exchange_ok");
         }
         window.history.replaceState({}, "", "/magic-link");
         for (let i = 0; i < 20; i++) {
           const { data } = await supabase.auth.getSession();
           if (data.session?.user?.id) {
+            logAuthEvent("magic_link.session_ready", {
+              userId: data.session.user.id,
+              waitMs: i * 150,
+            });
             await routeForUser(data.session.user.id);
             return;
           }
           await new Promise((r) => setTimeout(r, 150));
           if (cancelled) return;
         }
+        logAuthEvent("magic_link.session_timeout");
         setErrorMsg("Este enlace expiró o ya fue usado.");
         setStatus("error");
       } catch (err) {

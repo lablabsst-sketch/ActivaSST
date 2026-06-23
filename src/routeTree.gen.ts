@@ -32,6 +32,7 @@ import { Route as AdminReinvitarRouteImport } from './routes/admin.reinvitar'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
 import { Route as ApiPublicQaSeedRouteImport } from './routes/api/public/qa-seed'
+import { Route as ApiPublicAuthEventRouteImport } from './routes/api/public/auth-event'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -153,6 +154,11 @@ const ApiPublicQaSeedRoute = ApiPublicQaSeedRouteImport.update({
   path: '/api/public/qa-seed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAuthEventRoute = ApiPublicAuthEventRouteImport.update({
+  id: '/api/public/auth-event',
+  path: '/api/public/auth-event',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/api/public/auth-event': typeof ApiPublicAuthEventRoute
   '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
+  '/api/public/auth-event': typeof ApiPublicAuthEventRoute
   '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/api/public/auth-event': typeof ApiPublicAuthEventRoute
   '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
+    | '/api/public/auth-event'
     | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista'
+    | '/api/public/auth-event'
     | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   id:
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
+    | '/api/public/auth-event'
     | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   fileRoutesById: FileRoutesById
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   PrevencionistaSolicitudesArcoRoute: typeof PrevencionistaSolicitudesArcoRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
+  ApiPublicAuthEventRoute: typeof ApiPublicAuthEventRoute
   ApiPublicQaSeedRoute: typeof ApiPublicQaSeedRoute
 }
 
@@ -494,6 +507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicQaSeedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/auth-event': {
+      id: '/api/public/auth-event'
+      path: '/api/public/auth-event'
+      fullPath: '/api/public/auth-event'
+      preLoaderRoute: typeof ApiPublicAuthEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -542,6 +562,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrevencionistaSolicitudesArcoRoute: PrevencionistaSolicitudesArcoRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
+  ApiPublicAuthEventRoute: ApiPublicAuthEventRoute,
   ApiPublicQaSeedRoute: ApiPublicQaSeedRoute,
 }
 export const routeTree = rootRouteImport
