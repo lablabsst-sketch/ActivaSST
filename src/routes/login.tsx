@@ -10,6 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  checkRegistrationEligibility,
+  completeRegistration,
+} from "@/lib/api/registration.functions";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -66,7 +70,7 @@ const emailSchema = z.object({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"cedula" | "email">("cedula");
+  const [tab, setTab] = useState<"cedula" | "email" | "registro">("cedula");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -95,9 +99,10 @@ function LoginPage() {
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="cedula">Cédula</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="registro">Crear cuenta</TabsTrigger>
           </TabsList>
 
           <TabsContent value="cedula" className="pt-4">
@@ -108,6 +113,10 @@ function LoginPage() {
           <TabsContent value="email" className="pt-4">
             <EmailForm onSuccess={(uid) => routeByRol(uid, navigate)} />
             <ForgotLink />
+          </TabsContent>
+
+          <TabsContent value="registro" className="pt-4">
+            <RegisterFlow onSuccess={(uid) => routeByRol(uid, navigate)} />
           </TabsContent>
         </Tabs>
       </section>
@@ -278,5 +287,187 @@ function ForgotLink() {
         ¿Olvidaste tu contraseña?
       </Link>
     </p>
+  );
+}
+
+// ============================================================
+// RegisterFlow: el prevencionista crea la fila en public.usuarios
+// con su email y/o cédula. El propio trabajador entra acá, valida
+// que su perfil exista (sin password), crea su password y entra.
+// ============================================================
+const idSchema = z.object({
+  identificador: z.string().trim().min(4, "Ingresa tu correo o cédula"),
+});
+const pwSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Mínimo 8 caracteres")
+      .regex(/[A-Z]/, "Incluye al menos una mayúscula")
+      .regex(/[0-9]/, "Incluye al menos un número"),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirm"],
+  });
+
+type Step1 =
+  | { kind: "ask" }
+  | { kind: "confirm"; usuario_id: string; email: string; nombre: string };
+
+function RegisterFlow({ onSuccess }: { onSuccess: (userId: string) => void }) {
+  const [step, setStep] = useState<Step1>({ kind: "ask" });
+
+  if (step.kind === "ask") {
+    return <RegisterIdStep onFound={(p) => setStep({ kind: "confirm", ...p })} />;
+  }
+  return (
+    <RegisterPasswordStep
+      usuario_id={step.usuario_id}
+      email={step.email}
+      nombre={step.nombre}
+      onBack={() => setStep({ kind: "ask" })}
+      onSuccess={onSuccess}
+    />
+  );
+}
+
+function RegisterIdStep({
+  onFound,
+}: {
+  onFound: (p: { usuario_id: string; email: string; nombre: string }) => void;
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<z.infer<typeof idSchema>>({ resolver: zodResolver(idSchema) });
+
+  const onSubmit = async (v: z.infer<typeof idSchema>) => {
+    try {
+      const res = await checkRegistrationEligibility({
+        data: { identificador: v.identificador },
+      });
+      if (!res.ok) {
+        if ("already_registered" in res && res.already_registered) {
+          toast.error(res.motivo);
+        } else {
+          toast.error(res.motivo);
+        }
+        return;
+      }
+      onFound({ usuario_id: res.usuario_id, email: res.email, nombre: res.nombre });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error de conexión");
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="reg-id">Correo o cédula</Label>
+        <Input
+          id="reg-id"
+          autoComplete="username"
+          placeholder="tu@empresa.co o 1023456789"
+          {...register("identificador")}
+        />
+        {errors.identificador && (
+          <p className="text-xs text-destructive">{errors.identificador.message}</p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Tu prevencionista debe haberte registrado previamente.
+        </p>
+      </div>
+      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Verificando…" : "Continuar"}
+      </Button>
+    </form>
+  );
+}
+
+function RegisterPasswordStep({
+  usuario_id,
+  email,
+  nombre,
+  onBack,
+  onSuccess,
+}: {
+  usuario_id: string;
+  email: string;
+  nombre: string;
+  onBack: () => void;
+  onSuccess: (userId: string) => void;
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<z.infer<typeof pwSchema>>({ resolver: zodResolver(pwSchema) });
+
+  const onSubmit = async (v: z.infer<typeof pwSchema>) => {
+    try {
+      await completeRegistration({
+        data: { usuario_id, password: v.password },
+      });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: v.password,
+      });
+      if (error || !data.session) {
+        toast.error("Cuenta creada. Inicia sesión con tu nueva contraseña.");
+        onBack();
+        return;
+      }
+      toast.success("¡Bienvenido!");
+      onSuccess(data.session.user.id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="rounded-md border bg-muted/30 p-3 text-sm">
+        <p className="font-medium">{nombre || "Cuenta encontrada"}</p>
+        <p className="text-xs text-muted-foreground break-all">{email}</p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="reg-pw">Nueva contraseña</Label>
+        <Input
+          id="reg-pw"
+          type="password"
+          autoComplete="new-password"
+          {...register("password")}
+        />
+        {errors.password && (
+          <p className="text-xs text-destructive">{errors.password.message}</p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Mínimo 8 caracteres, con mayúscula y número.
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="reg-pw2">Confirmar contraseña</Label>
+        <Input
+          id="reg-pw2"
+          type="password"
+          autoComplete="new-password"
+          {...register("confirm")}
+        />
+        {errors.confirm && (
+          <p className="text-xs text-destructive">{errors.confirm.message}</p>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
+          Atrás
+        </Button>
+        <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
+          {isSubmitting ? "Creando…" : "Crear cuenta y entrar"}
+        </Button>
+      </div>
+    </form>
   );
 }

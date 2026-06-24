@@ -76,9 +76,6 @@ export const importWorkers = createServerFn({ method: "POST" })
     const inputs: AltaInput[] =
       data.modo === "individual" ? [data.trabajador] : data.trabajadores;
 
-    const origin = getRequest()?.headers.get("origin") ?? process.env.APP_ORIGIN ?? "";
-    const redirectTo = origin ? `${origin}/magic-link` : undefined;
-
     const detalles: Detalle[] = [];
     let creados = 0;
     let omitidos = 0;
@@ -86,7 +83,7 @@ export const importWorkers = createServerFn({ method: "POST" })
 
     for (const t of inputs) {
       try {
-        const r = await procesarUno(supabaseAdmin, data.empresa_id, t, redirectTo);
+        const r = await procesarUno(supabaseAdmin, data.empresa_id, t);
         detalles.push(r);
         if (r.resultado === "creado") creados++;
         else if (r.resultado === "omitido") omitidos++;
@@ -109,7 +106,6 @@ async function procesarUno(
   supabaseAdmin: AdminClient,
   empresa_id: string,
   t: AltaInput,
-  redirectTo: string | undefined,
 ): Promise<Detalle> {
   // ¿Existe por email o documento dentro de la empresa?
   const { data: existing } = await supabaseAdmin
@@ -126,13 +122,19 @@ async function procesarUno(
         .update({ estado: "pendiente" })
         .eq("id", existing.id);
       if (error) return cupoOrError(error, t);
-      return invitar(supabaseAdmin, t, redirectTo);
+      return {
+        email: t.email,
+        documento: t.documento,
+        resultado: "creado",
+        motivo: "Reactivado. Debe entrar a /login → Crear cuenta.",
+      };
     }
     return { email: t.email, documento: t.documento, resultado: "omitido", motivo: "Ya existe" };
   }
 
-  // 1) Insertar PRIMERO en public.usuarios (el trigger enforce_email_whitelist
-  //    sobre auth.users exige que el email exista aquí antes de crear el auth user).
+  // Nuevo flujo: solo INSERTAR en public.usuarios. El auth.user se crea
+  // cuando el propio usuario va a /login → Crear cuenta y elige password.
+  // No se envía email; el prevencionista entrega el dato verbalmente.
   const userId = crypto.randomUUID();
   const { error: insErr } = await supabaseAdmin.from("usuarios").insert({
     id: userId,
@@ -142,35 +144,13 @@ async function procesarUno(
     documento: t.documento,
     email: t.email,
     estado: t.estado,
+    password_set: false,
   });
   if (insErr) {
     return cupoOrError(insErr, t);
   }
 
-  // 2) Crear el auth user con el MISMO UUID.
-  const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
-    id: userId,
-    email: t.email,
-    email_confirm: false,
-  });
-  if (createErr) {
-    // Rollback: borrar la fila para evitar huérfanos.
-    await supabaseAdmin.from("usuarios").delete().eq("id", userId);
-    return {
-      email: t.email,
-      documento: t.documento,
-      resultado: "error",
-      motivo: createErr.message,
-    };
-  }
-
-  // 3) Enviar magic link. Si falla, el usuario ya existe — no rollback.
-  const { error: invErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-    t.email,
-    redirectTo ? { redirectTo } : undefined,
-  );
-
-  // 4) Asignar tipos de trabajo.
+  // Asignar tipos de trabajo.
   if (t.tipo_ids?.length) {
     const rows = t.tipo_ids.map((tipo_id) => ({ usuario_id: userId, tipo_id }));
     const { error: tipoErr } = await supabaseAdmin.from("usuario_tipos_trabajo").insert(rows);
@@ -184,30 +164,6 @@ async function procesarUno(
     }
   }
 
-  if (invErr) {
-    return {
-      email: t.email,
-      documento: t.documento,
-      resultado: "creado",
-      motivo: `Creado, pero falló envío de invitación: ${invErr.message}`,
-    };
-  }
-
-  return { email: t.email, documento: t.documento, resultado: "creado" };
-}
-
-async function invitar(
-  supabaseAdmin: AdminClient,
-  t: AltaInput,
-  redirectTo: string | undefined,
-): Promise<Detalle> {
-  const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-    t.email,
-    redirectTo ? { redirectTo } : undefined,
-  );
-  if (error) {
-    return { email: t.email, documento: t.documento, resultado: "error", motivo: error.message };
-  }
   return { email: t.email, documento: t.documento, resultado: "creado" };
 }
 
@@ -225,7 +181,9 @@ function cupoOrError(err: { message: string }, t: AltaInput): Detalle {
 
 // ============================================================
 // Server Function: resendInvite
-// Reenvía magic link a un trabajador en estado pendiente.
+// Devuelve las instrucciones para que el prevencionista las
+// transmita verbalmente. Ya no se envía email — el trabajador
+// se auto-registra en /login → Crear cuenta.
 // ============================================================
 export const resendInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -244,7 +202,7 @@ export const resendInvite = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: target, error: tErr } = await supabaseAdmin
       .from("usuarios")
-      .select("email, empresa_id, estado, password_set")
+      .select("email, documento, empresa_id, estado, password_set")
       .eq("id", data.usuario_id)
       .single();
     if (tErr || !target) throw new Error("Trabajador no encontrado");
@@ -256,13 +214,14 @@ export const resendInvite = createServerFn({ method: "POST" })
     }
 
     const origin = getRequest()?.headers.get("origin") ?? process.env.APP_ORIGIN ?? "";
-    const redirectTo = origin ? `${origin}/magic-link` : undefined;
-    const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      target.email,
-      redirectTo ? { redirectTo } : undefined,
-    );
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    return {
+      ok: true,
+      email: target.email,
+      documento: target.documento,
+      instrucciones:
+        `Pídele al trabajador que entre a ${origin || "la app"}/login, ` +
+        `vaya a la pestaña "Crear cuenta" y use su correo o cédula para configurar su contraseña.`,
+    };
   });
 
 // ============================================================
