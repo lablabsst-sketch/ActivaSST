@@ -44,7 +44,11 @@ function ConfigurarPasswordPage() {
       );
       toast.success("Contraseña creada. La próxima vez entrarás con cédula y contraseña.");
       const dest =
-        usuario?.rol === "trabajador" ? "/trabajador" : "/prevencionista";
+        usuario?.estado === "pendiente"
+          ? "/onboarding"
+          : usuario?.rol === "trabajador"
+            ? "/trabajador"
+            : "/prevencionista";
       navigate({ to: dest, replace: true });
     } catch (err) {
       toast.error("No se pudo guardar", {

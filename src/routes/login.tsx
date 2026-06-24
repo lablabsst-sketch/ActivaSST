@@ -116,7 +116,11 @@ function LoginPage() {
           </TabsContent>
 
           <TabsContent value="registro" className="pt-4">
-            <RegisterFlow onSuccess={(uid) => routeByRol(uid, navigate)} />
+            <RegisterFlow
+              onSuccess={(uid) =>
+                routeByRol(uid, navigate, { skipPasswordCheck: true })
+              }
+            />
           </TabsContent>
         </Tabs>
       </section>
@@ -127,13 +131,16 @@ function LoginPage() {
 async function routeByRol(
   userId: string,
   navigate: ReturnType<typeof useNavigate>,
+  opts?: { skipPasswordCheck?: boolean },
 ) {
-  const { data: pwSet } = await (
-    supabase as unknown as { rpc: (n: string) => Promise<{ data: boolean | null }> }
-  ).rpc("current_password_set");
-  if (!pwSet) {
-    navigate({ to: "/perfil/configurar-password", replace: true });
-    return;
+  if (!opts?.skipPasswordCheck) {
+    const { data: pwSet } = await (
+      supabase as unknown as { rpc: (n: string) => Promise<{ data: boolean | null }> }
+    ).rpc("current_password_set");
+    if (!pwSet) {
+      navigate({ to: "/perfil/configurar-password", replace: true });
+      return;
+    }
   }
   const { data: u } = await supabase
     .from("usuarios")
