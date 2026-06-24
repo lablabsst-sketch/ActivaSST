@@ -68,7 +68,7 @@ export const listarSolicitudesArcoEmpresa = createServerFn({ method: "GET" })
     const { data, error } = await supabase
       .from("solicitudes_arco")
       .select(
-        "id, tipo, descripcion, estado, respuesta, created_at, resuelta_at, usuario_id, usuarios(nombre, email)",
+        "id, tipo, descripcion, estado, respuesta, created_at, resuelta_at, usuario_id, usuarios!solicitudes_arco_usuario_id_fkey(nombre, email)",
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
