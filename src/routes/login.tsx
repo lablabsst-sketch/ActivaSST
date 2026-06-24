@@ -71,6 +71,7 @@ const emailSchema = z.object({
 function LoginPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"cedula" | "email" | "registro">("cedula");
+  const [prefillEmail, setPrefillEmail] = useState<string>("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -111,7 +112,10 @@ function LoginPage() {
           </TabsContent>
 
           <TabsContent value="email" className="pt-4">
-            <EmailForm onSuccess={(uid) => routeByRol(uid, navigate)} />
+            <EmailForm
+              defaultEmail={prefillEmail}
+              onSuccess={(uid) => routeByRol(uid, navigate)}
+            />
             <ForgotLink />
           </TabsContent>
 
@@ -120,6 +124,11 @@ function LoginPage() {
               onSuccess={(uid) =>
                 routeByRol(uid, navigate, { skipPasswordCheck: true })
               }
+              onAlreadyRegistered={(email) => {
+                setPrefillEmail(email);
+                setTab("email");
+                toast.info("Tu cuenta ya existe. Ingresa tu contraseña.");
+              }}
             />
           </TabsContent>
         </Tabs>
@@ -235,12 +244,21 @@ function CedulaForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
   );
 }
 
-function EmailForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
+function EmailForm({
+  onSuccess,
+  defaultEmail,
+}: {
+  onSuccess: (userId: string) => void;
+  defaultEmail?: string;
+}) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<z.infer<typeof emailSchema>>({ resolver: zodResolver(emailSchema) });
+  } = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: defaultEmail ?? "", password: "" },
+  });
   const onSubmit = async (v: z.infer<typeof emailSchema>) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: v.email,
@@ -323,11 +341,22 @@ type Step1 =
   | { kind: "ask" }
   | { kind: "confirm"; usuario_id: string; email: string; nombre: string };
 
-function RegisterFlow({ onSuccess }: { onSuccess: (userId: string) => void }) {
+function RegisterFlow({
+  onSuccess,
+  onAlreadyRegistered,
+}: {
+  onSuccess: (userId: string) => void;
+  onAlreadyRegistered: (email: string) => void;
+}) {
   const [step, setStep] = useState<Step1>({ kind: "ask" });
 
   if (step.kind === "ask") {
-    return <RegisterIdStep onFound={(p) => setStep({ kind: "confirm", ...p })} />;
+    return (
+      <RegisterIdStep
+        onFound={(p) => setStep({ kind: "confirm", ...p })}
+        onAlreadyRegistered={onAlreadyRegistered}
+      />
+    );
   }
   return (
     <RegisterPasswordStep
@@ -336,14 +365,17 @@ function RegisterFlow({ onSuccess }: { onSuccess: (userId: string) => void }) {
       nombre={step.nombre}
       onBack={() => setStep({ kind: "ask" })}
       onSuccess={onSuccess}
+      onAlreadyRegistered={onAlreadyRegistered}
     />
   );
 }
 
 function RegisterIdStep({
   onFound,
+  onAlreadyRegistered,
 }: {
   onFound: (p: { usuario_id: string; email: string; nombre: string }) => void;
+  onAlreadyRegistered: (email: string) => void;
 }) {
   const {
     register,
@@ -358,7 +390,9 @@ function RegisterIdStep({
       });
       if (!res.ok) {
         if ("already_registered" in res && res.already_registered) {
-          toast.error(res.motivo);
+          // Conoce el email solo si el usuario lo escribió como identificador.
+          const isEmail = v.identificador.includes("@");
+          onAlreadyRegistered(isEmail ? v.identificador.trim() : "");
         } else {
           toast.error(res.motivo);
         }
@@ -400,12 +434,14 @@ function RegisterPasswordStep({
   nombre,
   onBack,
   onSuccess,
+  onAlreadyRegistered,
 }: {
   usuario_id: string;
   email: string;
   nombre: string;
   onBack: () => void;
   onSuccess: (userId: string) => void;
+  onAlreadyRegistered: (email: string) => void;
 }) {
   const {
     register,
@@ -418,17 +454,26 @@ function RegisterPasswordStep({
       await completeRegistration({
         data: { usuario_id, password: v.password },
       });
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // signInWithPassword puede fallar por race-condition (auth.users recién creado).
+      // Reintenta una vez con un pequeño delay antes de derivar al flujo de login normal.
+      let attempt = await supabase.auth.signInWithPassword({
         email,
         password: v.password,
       });
-      if (error || !data.session) {
-        toast.error("Cuenta creada. Inicia sesión con tu nueva contraseña.");
-        onBack();
+      if (attempt.error || !attempt.data.session) {
+        await new Promise((r) => setTimeout(r, 600));
+        attempt = await supabase.auth.signInWithPassword({
+          email,
+          password: v.password,
+        });
+      }
+      if (attempt.error || !attempt.data.session) {
+        // La cuenta ya está creada con su password. Lleva al tab Email precargado.
+        onAlreadyRegistered(email);
         return;
       }
       toast.success("¡Bienvenido!");
-      onSuccess(data.session.user.id);
+      onSuccess(attempt.data.session.user.id);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error");
     }
