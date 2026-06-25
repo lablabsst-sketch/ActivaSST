@@ -21,7 +21,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import type { Database } from "@/integrations/supabase/types";
-import { PasswordFields, validatePassword } from "@/components/password-fields";
 
 type TipoTrabajo = Database["public"]["Tables"]["tipos_trabajo"]["Row"];
 
@@ -49,7 +48,7 @@ const FINALIDADES = [
   "auditoria_legal",
 ];
 
-const STEPS = ["Datos", "Tipos de trabajo", "Consentimiento", "Contraseña"];
+const STEPS = ["Datos", "Tipos de trabajo", "Consentimiento"];
 
 function InfoTip({ text }: { text: string }) {
   return (
@@ -75,8 +74,6 @@ function OnboardingPage() {
   const { session, usuario, loading } = useUsuario();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [pw, setPw] = useState("");
-  const [pwConfirm, setPwConfirm] = useState("");
 
   const tiposQuery = useQuery({
     queryKey: ["tipos-trabajo"],
@@ -156,18 +153,9 @@ function OnboardingPage() {
 
   const onSubmit = async (values: Values) => {
     if (!usuario) return;
-    const pwErr = validatePassword(pw);
-    if (pwErr) return toast.error(pwErr);
-    if (pw !== pwConfirm) return toast.error("Las contraseñas no coinciden");
 
     setSubmitting(true);
     try {
-      const { error: pwError } = await supabase.auth.updateUser({ password: pw });
-      if (pwError) throw pwError;
-      await (
-        supabase as unknown as { rpc: (n: string) => Promise<{ error: unknown }> }
-      ).rpc("mark_password_set");
-
       const { error: updErr } = await supabase
         .from("usuarios")
         .update({
@@ -341,28 +329,6 @@ function OnboardingPage() {
                     {errors.consentimiento.message}
                   </p>
                 )}
-              </CardContent>
-            </Card>
-          )}
-
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-1.5">
-                  Crea tu contraseña
-                  <InfoTip text="Te permitirá entrar rápido con tu cédula la próxima vez, sin esperar correo." />
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Mínimo 8 caracteres, 1 mayúscula y 1 número.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PasswordFields
-                  password={pw}
-                  confirm={pwConfirm}
-                  onPassword={setPw}
-                  onConfirm={setPwConfirm}
-                />
               </CardContent>
             </Card>
           )}
