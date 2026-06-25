@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Users, Search, Pencil, Mail, AlertCircle, UserX } from "lucide-react";
+import { Plus, Users, Search, Pencil, Mail, AlertCircle, UserX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
@@ -20,9 +20,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AltaTrabajadorDialog } from "@/components/alta-trabajador-dialog";
 import { EditTrabajadorDialog } from "@/components/edit-trabajador-dialog";
-import { resendInvite } from "@/lib/api/workers.functions";
+import { deleteWorker, resendInvite } from "@/lib/api/workers.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type Trabajador = Database["public"]["Tables"]["usuarios"]["Row"];
@@ -45,6 +55,8 @@ function TrabajadoresPage() {
   const { alerta } = useSearch({ from: "/prevencionista/trabajadores" });
   const [openAlta, setOpenAlta] = useState(false);
   const [editTarget, setEditTarget] = useState<Trabajador | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Trabajador | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<FiltroEstado>("todos");
   const [search, setSearch] = useState("");
@@ -115,6 +127,27 @@ function TrabajadoresPage() {
     if (error) return toast.error("No se pudo desactivar", { description: error.message });
     toast.success("Trabajador desactivado");
     trabajadoresQuery.refetch();
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await deleteWorker({ data: { usuario_id: deleteTarget.id } });
+      if ("warning" in res && res.warning) {
+        toast.warning("Eliminado con aviso", { description: res.warning });
+      } else {
+        toast.success("Trabajador eliminado");
+      }
+      setDeleteTarget(null);
+      trabajadoresQuery.refetch();
+    } catch (err) {
+      toast.error("No se pudo eliminar", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleResend = async (id: string) => {
@@ -319,6 +352,17 @@ function TrabajadoresPage() {
                         Desactivar
                       </Button>
                     )}
+                    {t.estado === "inactivo" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setDeleteTarget(t)}
+                        aria-label={`Eliminar ${t.nombre || t.email}`}
+                        className="min-touch text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="size-4" aria-hidden />
+                      </Button>
+                    )}
                   </div>
                 </li>
                 );
@@ -354,6 +398,36 @@ function TrabajadoresPage() {
         onOpenChange={(o: boolean) => !o && setEditTarget(null)}
         onSuccess={() => trabajadoresQuery.refetch()}
       />
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && !deleting && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar trabajador?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a eliminar permanentemente a{" "}
+              <strong>{deleteTarget?.nombre || deleteTarget?.email}</strong>.
+              Esta acción no se puede deshacer y borra su cuenta de acceso.
+              El historial de pausas ya registrado se conserva.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Eliminando…" : "Sí, eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

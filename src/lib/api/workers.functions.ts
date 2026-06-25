@@ -280,3 +280,70 @@ export const updateWorker = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ============================================================
+// Server Function: deleteWorker
+// Elimina permanentemente a un trabajador inactivo (y su auth.user
+// si existe). Solo prevencionista|empresa_admin de la misma empresa.
+// Requiere que el trabajador esté en estado 'inactivo' como salvaguarda
+// para que no se pierda historial accidentalmente.
+// ============================================================
+export const deleteWorker = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ usuario_id: z.string().uuid() }))
+  .handler(async ({ data, context }) => {
+    const { data: caller } = await context.supabase
+      .from("usuarios")
+      .select("empresa_id, rol")
+      .eq("id", context.userId)
+      .single();
+    if (!caller || !["prevencionista", "empresa_admin"].includes(caller.rol)) {
+      throw new Error("No autorizado");
+    }
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data: target, error: tErr } = await supabaseAdmin
+      .from("usuarios")
+      .select("id, empresa_id, estado, rol")
+      .eq("id", data.usuario_id)
+      .single();
+    if (tErr || !target) throw new Error("Trabajador no encontrado");
+    if (target.empresa_id !== caller.empresa_id) {
+      throw new Error("Empresa no autorizada");
+    }
+    if (target.rol !== "trabajador") {
+      throw new Error("Solo se pueden eliminar trabajadores");
+    }
+    if (target.estado !== "inactivo") {
+      throw new Error("Primero desactiva al trabajador antes de eliminarlo");
+    }
+
+    // 1) Borra vínculos (tipos de trabajo) — por si no hay ON DELETE CASCADE.
+    await supabaseAdmin
+      .from("usuario_tipos_trabajo")
+      .delete()
+      .eq("usuario_id", data.usuario_id);
+
+    // 2) Borra la fila de public.usuarios.
+    const { error: delErr } = await supabaseAdmin
+      .from("usuarios")
+      .delete()
+      .eq("id", data.usuario_id);
+    if (delErr) throw new Error(delErr.message);
+
+    // 3) Si tenía auth.user (password_set=true en algún momento), lo eliminamos.
+    // Ignoramos error "user not found" porque puede no existir si nunca completó el registro.
+    const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(
+      data.usuario_id,
+    );
+    if (authErr && !authErr.message.toLowerCase().includes("not found")) {
+      // El usuario público ya fue borrado; lo reportamos pero no rollback.
+      return {
+        ok: true,
+        warning: `Trabajador eliminado, pero auth.user persiste: ${authErr.message}`,
+      };
+    }
+
+    return { ok: true };
+  });
