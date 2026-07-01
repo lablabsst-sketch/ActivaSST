@@ -80,11 +80,9 @@ function BootstrapPage() {
         },
       });
       setResult({ empresa_id: res.empresa_id, usuario_id: res.usuario_id });
-      if ("warning" in res && res.warning) {
-        toast.warning(res.warning);
-      } else {
-        toast.success("Listo. Revisa tu correo para el magic link.");
-      }
+      toast.success(
+        'Listo. Ahora entra a /login → "Crear cuenta" con este email para configurar tu contraseña.',
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error desconocido";
       toast.error(msg);

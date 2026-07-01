@@ -10,9 +10,10 @@ import { getClientIp, rateLimit } from "@/lib/security/rate-limit";
 
 // ============================================================
 // Server Function: bootstrapPrevencionista
-// Crea la primera empresa + usuario prevencionista, protegido por BOOTSTRAP_TOKEN.
-// SIN middleware: aún no hay sesión.
-// NO importa client.server a nivel de módulo (dynamic import dentro del handler).
+// Crea la primera empresa + fila en public.usuarios (rol=prevencionista).
+// NO crea auth.user ni envía correo. El prevencionista entra por
+// /login → "Crear cuenta" con su email/cédula para configurar password.
+// Protegido por BOOTSTRAP_TOKEN. SIN middleware.
 // ============================================================
 
 const planSlugEnum = z.enum([
@@ -95,7 +96,9 @@ export const bootstrapPrevencionista = createServerFn({ method: "POST" })
       throw new Error(`No se pudo crear empresa: ${empErr?.message ?? "desconocido"}`);
     }
 
-    // 3. Insertar usuario PRIMERO (trigger enforce_email_whitelist lo exige)
+    // 3. Insertar fila en public.usuarios con password_set=false.
+    //    Trigger enforce_email_whitelist necesita esta fila ANTES de auth.user
+    //    (que se creará cuando el propio prevencionista use "Crear cuenta").
     const userId = crypto.randomUUID();
     const { error: usrErr } = await supabaseAdmin.from("usuarios").insert({
       id: userId,
@@ -105,42 +108,11 @@ export const bootstrapPrevencionista = createServerFn({ method: "POST" })
       documento: data.prevencionista.documento,
       email: data.prevencionista.email,
       estado: "pendiente",
+      password_set: false,
     });
     if (usrErr) {
       await supabaseAdmin.from("empresas").delete().eq("id", empresa.id);
       throw new Error(`No se pudo crear usuario: ${usrErr.message}`);
-    }
-
-    // 4. Crear auth user con el MISMO UUID
-    const origin = process.env.APP_ORIGIN ?? "";
-    const redirectTo = origin ? `${origin}/magic-link` : undefined;
-
-    const { data: invited, error: invErr } =
-      await supabaseAdmin.auth.admin.createUser({
-        id: userId,
-        email: data.prevencionista.email,
-        email_confirm: false,
-      });
-    if (invErr || !invited?.user) {
-      await supabaseAdmin.from("usuarios").delete().eq("id", userId);
-      await supabaseAdmin.from("empresas").delete().eq("id", empresa.id);
-      throw new Error(
-        `No se pudo crear auth user: ${invErr?.message ?? "desconocido"}`,
-      );
-    }
-
-    // 5. Enviar magic link / invite
-    const { error: linkErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      data.prevencionista.email,
-      redirectTo ? { redirectTo } : undefined,
-    );
-    if (linkErr) {
-      return {
-        ok: true as const,
-        empresa_id: empresa.id,
-        usuario_id: userId,
-        warning: `Usuario creado pero falló el envío del invite: ${linkErr.message}. Reintenta desde /login con magic link.`,
-      };
     }
 
     return {

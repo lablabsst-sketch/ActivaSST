@@ -28,10 +28,8 @@ import { Route as PrevencionistaReportesRouteImport } from './routes/prevencioni
 import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
 import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
 import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
-import { Route as AdminReinvitarRouteImport } from './routes/admin.reinvitar'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
-import { Route as ApiPublicQaSeedRouteImport } from './routes/api/public/qa-seed'
 import { Route as ApiPublicAuthEventRouteImport } from './routes/api/public/auth-event'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
@@ -134,11 +132,6 @@ const PerfilConfigurarPasswordRoute =
     path: '/configurar-password',
     getParentRoute: () => PerfilRoute,
   } as any)
-const AdminReinvitarRoute = AdminReinvitarRouteImport.update({
-  id: '/admin/reinvitar',
-  path: '/admin/reinvitar',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
   id: '/admin/bootstrap',
   path: '/admin/bootstrap',
@@ -148,11 +141,6 @@ const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
   id: '/pausa/$id',
   path: '/pausa/$id',
   getParentRoute: () => TrabajadorRoute,
-} as any)
-const ApiPublicQaSeedRoute = ApiPublicQaSeedRouteImport.update({
-  id: '/api/public/qa-seed',
-  path: '/api/public/qa-seed',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAuthEventRoute = ApiPublicAuthEventRouteImport.update({
   id: '/api/public/auth-event',
@@ -173,7 +161,6 @@ export interface FileRoutesByFullPath {
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
-  '/admin/reinvitar': typeof AdminReinvitarRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
@@ -183,7 +170,6 @@ export interface FileRoutesByFullPath {
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
   '/api/public/auth-event': typeof ApiPublicAuthEventRoute
-  '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesByTo {
@@ -199,7 +185,6 @@ export interface FileRoutesByTo {
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
-  '/admin/reinvitar': typeof AdminReinvitarRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
@@ -209,7 +194,6 @@ export interface FileRoutesByTo {
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
   '/api/public/auth-event': typeof ApiPublicAuthEventRoute
-  '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesById {
@@ -226,7 +210,6 @@ export interface FileRoutesById {
   '/terminos-condiciones': typeof TerminosCondicionesRoute
   '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
-  '/admin/reinvitar': typeof AdminReinvitarRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
   '/prevencionista/programaciones': typeof PrevencionistaProgramacionesRoute
@@ -236,7 +219,6 @@ export interface FileRoutesById {
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
   '/api/public/auth-event': typeof ApiPublicAuthEventRoute
-  '/api/public/qa-seed': typeof ApiPublicQaSeedRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRouteTypes {
@@ -254,7 +236,6 @@ export interface FileRouteTypes {
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
-    | '/admin/reinvitar'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
@@ -264,7 +245,6 @@ export interface FileRouteTypes {
     | '/trabajador/historial'
     | '/prevencionista/'
     | '/api/public/auth-event'
-    | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -280,7 +260,6 @@ export interface FileRouteTypes {
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
-    | '/admin/reinvitar'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
@@ -290,7 +269,6 @@ export interface FileRouteTypes {
     | '/trabajador/historial'
     | '/prevencionista'
     | '/api/public/auth-event'
-    | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   id:
     | '__root__'
@@ -306,7 +284,6 @@ export interface FileRouteTypes {
     | '/terminos-condiciones'
     | '/trabajador'
     | '/admin/bootstrap'
-    | '/admin/reinvitar'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
     | '/prevencionista/programaciones'
@@ -316,7 +293,6 @@ export interface FileRouteTypes {
     | '/trabajador/historial'
     | '/prevencionista/'
     | '/api/public/auth-event'
-    | '/api/public/qa-seed'
     | '/trabajador/pausa/$id'
   fileRoutesById: FileRoutesById
 }
@@ -333,7 +309,6 @@ export interface RootRouteChildren {
   TerminosCondicionesRoute: typeof TerminosCondicionesRoute
   TrabajadorRoute: typeof TrabajadorRouteWithChildren
   AdminBootstrapRoute: typeof AdminBootstrapRoute
-  AdminReinvitarRoute: typeof AdminReinvitarRoute
   PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
   PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
   PrevencionistaReportesRoute: typeof PrevencionistaReportesRoute
@@ -341,7 +316,6 @@ export interface RootRouteChildren {
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
   ApiPublicAuthEventRoute: typeof ApiPublicAuthEventRoute
-  ApiPublicQaSeedRoute: typeof ApiPublicQaSeedRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -479,13 +453,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilConfigurarPasswordRouteImport
       parentRoute: typeof PerfilRoute
     }
-    '/admin/reinvitar': {
-      id: '/admin/reinvitar'
-      path: '/admin/reinvitar'
-      fullPath: '/admin/reinvitar'
-      preLoaderRoute: typeof AdminReinvitarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/bootstrap': {
       id: '/admin/bootstrap'
       path: '/admin/bootstrap'
@@ -499,13 +466,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/trabajador/pausa/$id'
       preLoaderRoute: typeof TrabajadorPausaIdRouteImport
       parentRoute: typeof TrabajadorRoute
-    }
-    '/api/public/qa-seed': {
-      id: '/api/public/qa-seed'
-      path: '/api/public/qa-seed'
-      fullPath: '/api/public/qa-seed'
-      preLoaderRoute: typeof ApiPublicQaSeedRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/public/auth-event': {
       id: '/api/public/auth-event'
@@ -555,7 +515,6 @@ const rootRouteChildren: RootRouteChildren = {
   TerminosCondicionesRoute: TerminosCondicionesRoute,
   TrabajadorRoute: TrabajadorRouteWithChildren,
   AdminBootstrapRoute: AdminBootstrapRoute,
-  AdminReinvitarRoute: AdminReinvitarRoute,
   PrevencionistaPausasRoute: PrevencionistaPausasRoute,
   PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
   PrevencionistaReportesRoute: PrevencionistaReportesRoute,
@@ -563,8 +522,17 @@ const rootRouteChildren: RootRouteChildren = {
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
   ApiPublicAuthEventRoute: ApiPublicAuthEventRoute,
-  ApiPublicQaSeedRoute: ApiPublicQaSeedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
