@@ -28,6 +28,7 @@ import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionist
 import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
+import { Route as ApiPublicHooksReconcileUsuariosRouteImport } from './routes/api/public/hooks/reconcile-usuarios'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -129,6 +130,12 @@ const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
   path: '/pausa/$id',
   getParentRoute: () => TrabajadorRoute,
 } as any)
+const ApiPublicHooksReconcileUsuariosRoute =
+  ApiPublicHooksReconcileUsuariosRouteImport.update({
+    id: '/api/public/hooks/reconcile-usuarios',
+    path: '/api/public/hooks/reconcile-usuarios',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
+  '/api/public/hooks/reconcile-usuarios': typeof ApiPublicHooksReconcileUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -171,6 +179,7 @@ export interface FileRoutesByTo {
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
+  '/api/public/hooks/reconcile-usuarios': typeof ApiPublicHooksReconcileUsuariosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -193,6 +202,7 @@ export interface FileRoutesById {
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
+  '/api/public/hooks/reconcile-usuarios': typeof ApiPublicHooksReconcileUsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/trabajador/historial'
     | '/prevencionista/'
     | '/trabajador/pausa/$id'
+    | '/api/public/hooks/reconcile-usuarios'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/trabajador/historial'
     | '/prevencionista'
     | '/trabajador/pausa/$id'
+    | '/api/public/hooks/reconcile-usuarios'
   id:
     | '__root__'
     | '/'
@@ -258,6 +270,7 @@ export interface FileRouteTypes {
     | '/trabajador/historial'
     | '/prevencionista/'
     | '/trabajador/pausa/$id'
+    | '/api/public/hooks/reconcile-usuarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -277,6 +290,7 @@ export interface RootRouteChildren {
   PrevencionistaSolicitudesArcoRoute: typeof PrevencionistaSolicitudesArcoRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
+  ApiPublicHooksReconcileUsuariosRoute: typeof ApiPublicHooksReconcileUsuariosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -414,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrabajadorPausaIdRouteImport
       parentRoute: typeof TrabajadorRoute
     }
+    '/api/public/hooks/reconcile-usuarios': {
+      id: '/api/public/hooks/reconcile-usuarios'
+      path: '/api/public/hooks/reconcile-usuarios'
+      fullPath: '/api/public/hooks/reconcile-usuarios'
+      preLoaderRoute: typeof ApiPublicHooksReconcileUsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -459,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrevencionistaSolicitudesArcoRoute: PrevencionistaSolicitudesArcoRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
+  ApiPublicHooksReconcileUsuariosRoute: ApiPublicHooksReconcileUsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
