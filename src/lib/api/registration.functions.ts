@@ -73,7 +73,7 @@ export const completeRegistration = createServerFn({ method: "POST" })
     // Re-valida que la fila exista, no tenga password aún y no esté inactiva.
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("usuarios")
-      .select("id, email, password_set, estado")
+      .select("id, email, password_set, estado, rol")
       .eq("id", data.usuario_id)
       .maybeSingle();
     if (rowErr) throw new Error(rowErr.message);
@@ -120,5 +120,10 @@ export const completeRegistration = createServerFn({ method: "POST" })
       .eq("id", row.id);
     if (markErr) throw new Error(markErr.message);
 
-    return { ok: true as const, email: row.email };
+    return {
+      ok: true as const,
+      email: row.email,
+      rol: row.rol as "prevencionista" | "trabajador" | "empresa_admin",
+      estado: row.estado as "activo" | "pendiente" | "inactivo",
+    };
   });

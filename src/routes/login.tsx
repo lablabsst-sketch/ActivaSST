@@ -122,9 +122,7 @@ function LoginPage() {
 
           <TabsContent value="registro" className="pt-4">
             <RegisterFlow
-              onSuccess={(uid) =>
-                routeByRol(uid, navigate, { skipPasswordCheck: true })
-              }
+              onRegistered={(meta) => routeByMeta(meta, navigate)}
               onAlreadyRegistered={(email) => {
                 setPrefillEmail(email);
                 setTab("email");
@@ -136,6 +134,27 @@ function LoginPage() {
       </section>
     </AppShell>
   );
+}
+
+type UserRol = "prevencionista" | "trabajador" | "empresa_admin";
+type UserEstado = "activo" | "pendiente" | "inactivo";
+
+/**
+ * Navega según rol + estado ya conocidos, sin volver a consultar la DB.
+ * Se usa en flujos donde el server ya devolvió esos datos (evita race
+ * conditions de RLS justo después de crear sesión).
+ */
+function routeByMeta(
+  meta: { rol: UserRol; estado: UserEstado },
+  navigate: ReturnType<typeof useNavigate>,
+) {
+  if (meta.estado === "pendiente") {
+    return navigate({ to: "/onboarding", replace: true });
+  }
+  navigate({
+    to: meta.rol === "trabajador" ? "/trabajador" : "/prevencionista",
+    replace: true,
+  });
 }
 
 async function routeByRol(
@@ -158,11 +177,7 @@ async function routeByRol(
     .eq("id", userId)
     .maybeSingle();
   if (!u) return navigate({ to: "/login", replace: true });
-  if (u.estado === "pendiente") return navigate({ to: "/onboarding", replace: true });
-  navigate({
-    to: u.rol === "trabajador" ? "/trabajador" : "/prevencionista",
-    replace: true,
-  });
+  routeByMeta({ rol: u.rol as UserRol, estado: u.estado as UserEstado }, navigate);
 }
 
 function CedulaForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
@@ -341,10 +356,10 @@ type Step1 =
   | { kind: "confirm"; usuario_id: string; email: string; nombre: string };
 
 function RegisterFlow({
-  onSuccess,
+  onRegistered,
   onAlreadyRegistered,
 }: {
-  onSuccess: (userId: string) => void;
+  onRegistered: (meta: { rol: UserRol; estado: UserEstado }) => void;
   onAlreadyRegistered: (email: string) => void;
 }) {
   const [step, setStep] = useState<Step1>({ kind: "ask" });
@@ -363,7 +378,7 @@ function RegisterFlow({
       email={step.email}
       nombre={step.nombre}
       onBack={() => setStep({ kind: "ask" })}
-      onSuccess={onSuccess}
+      onRegistered={onRegistered}
       onAlreadyRegistered={onAlreadyRegistered}
     />
   );
@@ -432,14 +447,14 @@ function RegisterPasswordStep({
   email,
   nombre,
   onBack,
-  onSuccess,
+  onRegistered,
   onAlreadyRegistered,
 }: {
   usuario_id: string;
   email: string;
   nombre: string;
   onBack: () => void;
-  onSuccess: (userId: string) => void;
+  onRegistered: (meta: { rol: UserRol; estado: UserEstado }) => void;
   onAlreadyRegistered: (email: string) => void;
 }) {
   const {
@@ -450,7 +465,7 @@ function RegisterPasswordStep({
 
   const onSubmit = async (v: z.infer<typeof pwSchema>) => {
     try {
-      await completeRegistration({
+      const reg = await completeRegistration({
         data: { usuario_id, password: v.password },
       });
       // signInWithPassword puede fallar por race-condition (auth.users recién creado).
@@ -472,7 +487,9 @@ function RegisterPasswordStep({
         return;
       }
       toast.success("¡Bienvenido!");
-      onSuccess(attempt.data.session.user.id);
+      // Usamos rol/estado devueltos por el server (evita SELECT RLS-scoped
+      // antes de que la sesión fresca esté totalmente propagada).
+      onRegistered({ rol: reg.rol, estado: reg.estado });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error");
     }
