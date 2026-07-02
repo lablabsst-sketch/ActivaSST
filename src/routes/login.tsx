@@ -14,7 +14,10 @@ import {
   checkRegistrationEligibility,
   completeRegistration,
 } from "@/lib/api/registration.functions";
-import { resolveLoginEmailByCedula } from "@/lib/api/login.functions";
+import {
+  getSessionRouting,
+  resolveLoginEmailByCedula,
+} from "@/lib/api/login.functions";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -108,14 +111,14 @@ function LoginPage() {
           </TabsList>
 
           <TabsContent value="cedula" className="pt-4">
-            <CedulaForm onSuccess={(uid) => routeByRol(uid, navigate)} />
+            <CedulaForm onSuccess={() => routeBySession(navigate)} />
             <ForgotLink />
           </TabsContent>
 
           <TabsContent value="email" className="pt-4">
             <EmailForm
               defaultEmail={prefillEmail}
-              onSuccess={(uid) => routeByRol(uid, navigate)}
+              onSuccess={() => routeBySession(navigate)}
             />
             <ForgotLink />
           </TabsContent>
@@ -157,30 +160,22 @@ function routeByMeta(
   });
 }
 
-async function routeByRol(
-  userId: string,
-  navigate: ReturnType<typeof useNavigate>,
-  opts?: { skipPasswordCheck?: boolean },
-) {
-  if (!opts?.skipPasswordCheck) {
-    const { data: pwSet } = await (
-      supabase as unknown as { rpc: (n: string) => Promise<{ data: boolean | null }> }
-    ).rpc("current_password_set");
-    if (!pwSet) {
-      navigate({ to: "/perfil/configurar-password", replace: true });
-      return;
-    }
+/**
+ * Consulta rol+estado en el server (bypass RLS) y navega. Se usa tras un
+ * signIn exitoso donde la sesión fresca aún no propaga auth.uid() para las
+ * policies RLS del cliente. El server fn ya requiere el JWT válido, así que
+ * autoriza y devuelve el routing en una sola llamada.
+ */
+async function routeBySession(navigate: ReturnType<typeof useNavigate>) {
+  try {
+    const meta = await getSessionRouting();
+    routeByMeta(meta, navigate);
+  } catch {
+    navigate({ to: "/login", replace: true });
   }
-  const { data: u } = await supabase
-    .from("usuarios")
-    .select("rol, estado")
-    .eq("id", userId)
-    .maybeSingle();
-  if (!u) return navigate({ to: "/login", replace: true });
-  routeByMeta({ rol: u.rol as UserRol, estado: u.estado as UserEstado }, navigate);
 }
 
-function CedulaForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
+function CedulaForm({ onSuccess }: { onSuccess: () => void }) {
   const {
     register,
     handleSubmit,
@@ -213,7 +208,7 @@ function CedulaForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
       toast.error(NEUTRAL_ERROR);
       return;
     }
-    onSuccess(data.session.user.id);
+    onSuccess();
   };
 
   return (
@@ -262,7 +257,7 @@ function EmailForm({
   onSuccess,
   defaultEmail,
 }: {
-  onSuccess: (userId: string) => void;
+  onSuccess: () => void;
   defaultEmail?: string;
 }) {
   const {
@@ -282,7 +277,7 @@ function EmailForm({
       toast.error(NEUTRAL_ERROR);
       return;
     }
-    onSuccess(data.session.user.id);
+    onSuccess();
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
