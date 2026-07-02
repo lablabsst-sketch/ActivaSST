@@ -13,14 +13,16 @@ const inputSchema = z.object({ cedula: z.string().trim().min(3).max(32) });
 export const resolveLoginEmailByCedula = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin
-      .from("usuarios")
-      .select("email")
-      .eq("documento", data.cedula)
-      .in("estado", ["activo", "pendiente"])
-      .maybeSingle();
-    return { email: row?.email ?? null };
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+    );
+    const { data: email } = await supabase.rpc("get_login_email_by_cedula", {
+      p_cedula: data.cedula,
+    });
+    return { email: (email as string | null) ?? null };
   });
 
 /**
