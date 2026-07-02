@@ -14,6 +14,7 @@ import {
   checkRegistrationEligibility,
   completeRegistration,
 } from "@/lib/api/registration.functions";
+import { resolveLoginEmailByCedula } from "@/lib/api/login.functions";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -180,11 +181,9 @@ function CedulaForm({ onSuccess }: { onSuccess: (userId: string) => void }) {
       toast.error(`Demasiados intentos. Reintenta en ${Math.ceil(left / 60)} min.`);
       return;
     }
-    const { data: email } = await (
-      supabase as unknown as {
-        rpc: (n: string, args: Record<string, string>) => Promise<{ data: string | null }>;
-      }
-    ).rpc("get_login_email_by_cedula", { p_cedula: v.cedula.trim() });
+    const { email } = await resolveLoginEmailByCedula({
+      data: { cedula: v.cedula.trim() },
+    });
     if (!email) {
       pushAttempt(v.cedula);
       toast.error(NEUTRAL_ERROR);
