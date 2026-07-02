@@ -3,10 +3,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getPoliticaVigente = createServerFn({ method: "GET" })
   .handler(async () => {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from("politicas_tratamiento")
       .select("id, version, vigente_desde, contenido_md")
       .eq("vigente", true)
