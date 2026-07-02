@@ -16,9 +16,7 @@ import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-passwo
 import { Route as PoliticaTratamientoDatosRouteImport } from './routes/politica-tratamiento-datos'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
 import { Route as TrabajadorHistorialRouteImport } from './routes/trabajador.historial'
@@ -30,7 +28,6 @@ import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionist
 import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
 import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
-import { Route as ApiPublicAuthEventRouteImport } from './routes/api/public/auth-event'
 
 const TrabajadorRoute = TrabajadorRouteImport.update({
   id: '/trabajador',
@@ -68,19 +65,9 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MagicLinkRoute = MagicLinkRouteImport.update({
-  id: '/magic-link',
-  path: '/magic-link',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagnosticoRoute = DiagnosticoRouteImport.update({
-  id: '/diagnostico',
-  path: '/diagnostico',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -142,17 +129,10 @@ const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
   path: '/pausa/$id',
   getParentRoute: () => TrabajadorRoute,
 } as any)
-const ApiPublicAuthEventRoute = ApiPublicAuthEventRouteImport.update({
-  id: '/api/public/auth-event',
-  path: '/api/public/auth-event',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
-  '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
@@ -169,14 +149,11 @@ export interface FileRoutesByFullPath {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
-  '/api/public/auth-event': typeof ApiPublicAuthEventRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
-  '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
@@ -193,15 +170,12 @@ export interface FileRoutesByTo {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
-  '/api/public/auth-event': typeof ApiPublicAuthEventRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/diagnostico': typeof DiagnosticoRoute
   '/login': typeof LoginRoute
-  '/magic-link': typeof MagicLinkRoute
   '/onboarding': typeof OnboardingRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/politica-tratamiento-datos': typeof PoliticaTratamientoDatosRoute
@@ -218,16 +192,13 @@ export interface FileRoutesById {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
-  '/api/public/auth-event': typeof ApiPublicAuthEventRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/diagnostico'
     | '/login'
-    | '/magic-link'
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
@@ -244,14 +215,11 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
-    | '/api/public/auth-event'
     | '/trabajador/pausa/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/diagnostico'
     | '/login'
-    | '/magic-link'
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
@@ -268,14 +236,11 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista'
-    | '/api/public/auth-event'
     | '/trabajador/pausa/$id'
   id:
     | '__root__'
     | '/'
-    | '/diagnostico'
     | '/login'
-    | '/magic-link'
     | '/onboarding'
     | '/perfil'
     | '/politica-tratamiento-datos'
@@ -292,15 +257,12 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
-    | '/api/public/auth-event'
     | '/trabajador/pausa/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DiagnosticoRoute: typeof DiagnosticoRoute
   LoginRoute: typeof LoginRoute
-  MagicLinkRoute: typeof MagicLinkRoute
   OnboardingRoute: typeof OnboardingRoute
   PerfilRoute: typeof PerfilRouteWithChildren
   PoliticaTratamientoDatosRoute: typeof PoliticaTratamientoDatosRoute
@@ -315,7 +277,6 @@ export interface RootRouteChildren {
   PrevencionistaSolicitudesArcoRoute: typeof PrevencionistaSolicitudesArcoRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
-  ApiPublicAuthEventRoute: typeof ApiPublicAuthEventRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -369,25 +330,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/magic-link': {
-      id: '/magic-link'
-      path: '/magic-link'
-      fullPath: '/magic-link'
-      preLoaderRoute: typeof MagicLinkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagnostico': {
-      id: '/diagnostico'
-      path: '/diagnostico'
-      fullPath: '/diagnostico'
-      preLoaderRoute: typeof DiagnosticoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -467,13 +414,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrabajadorPausaIdRouteImport
       parentRoute: typeof TrabajadorRoute
     }
-    '/api/public/auth-event': {
-      id: '/api/public/auth-event'
-      path: '/api/public/auth-event'
-      fullPath: '/api/public/auth-event'
-      preLoaderRoute: typeof ApiPublicAuthEventRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -504,9 +444,7 @@ const TrabajadorRouteWithChildren = TrabajadorRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DiagnosticoRoute: DiagnosticoRoute,
   LoginRoute: LoginRoute,
-  MagicLinkRoute: MagicLinkRoute,
   OnboardingRoute: OnboardingRoute,
   PerfilRoute: PerfilRouteWithChildren,
   PoliticaTratamientoDatosRoute: PoliticaTratamientoDatosRoute,
@@ -521,7 +459,6 @@ const rootRouteChildren: RootRouteChildren = {
   PrevencionistaSolicitudesArcoRoute: PrevencionistaSolicitudesArcoRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
-  ApiPublicAuthEventRoute: ApiPublicAuthEventRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
