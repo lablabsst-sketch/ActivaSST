@@ -104,6 +104,16 @@ export const completeRegistration = createServerFn({ method: "POST" })
       }
     }
 
+    // Verifica que el auth.user quedó realmente persistido ANTES de marcar
+    // password_set=true. Evita desincronía entre public.usuarios y auth.users.
+    const { data: verify, error: verifyErr } =
+      await supabaseAdmin.auth.admin.getUserById(row.id);
+    if (verifyErr || !verify?.user) {
+      throw new Error(
+        "No pudimos confirmar la creación de tu cuenta. Intenta de nuevo en unos segundos.",
+      );
+    }
+
     const { error: markErr } = await supabaseAdmin
       .from("usuarios")
       .update({ password_set: true })
