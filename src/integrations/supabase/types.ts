@@ -702,6 +702,45 @@ export type Database = {
           },
         ]
       }
+      usuarios_reconciliacion_log: {
+        Row: {
+          auth_sin_perfil: number
+          detalle: Json | null
+          ejecutado_en: string
+          huerfanas_detectadas: number
+          huerfanas_reseteadas: number
+          id: string
+          ids_auth_sin_perfil: string[]
+          ids_reseteados: string[]
+          origen: string
+          total_revisados: number
+        }
+        Insert: {
+          auth_sin_perfil?: number
+          detalle?: Json | null
+          ejecutado_en?: string
+          huerfanas_detectadas?: number
+          huerfanas_reseteadas?: number
+          id?: string
+          ids_auth_sin_perfil?: string[]
+          ids_reseteados?: string[]
+          origen?: string
+          total_revisados?: number
+        }
+        Update: {
+          auth_sin_perfil?: number
+          detalle?: Json | null
+          ejecutado_en?: string
+          huerfanas_detectadas?: number
+          huerfanas_reseteadas?: number
+          id?: string
+          ids_auth_sin_perfil?: string[]
+          ids_reseteados?: string[]
+          origen?: string
+          total_revisados?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
