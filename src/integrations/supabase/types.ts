@@ -755,6 +755,27 @@ export type Database = {
       email_is_whitelisted: { Args: { p_email: string }; Returns: boolean }
       get_login_email_by_cedula: { Args: { p_cedula: string }; Returns: string }
       mark_password_set: { Args: never; Returns: undefined }
+      reconciliar_usuarios_auth: {
+        Args: { p_origen?: string }
+        Returns: {
+          auth_sin_perfil: number
+          detalle: Json | null
+          ejecutado_en: string
+          huerfanas_detectadas: number
+          huerfanas_reseteadas: number
+          id: string
+          ids_auth_sin_perfil: string[]
+          ids_reseteados: string[]
+          origen: string
+          total_revisados: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "usuarios_reconciliacion_log"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       arco_estado: "pendiente" | "en_revision" | "resuelta" | "rechazada"
