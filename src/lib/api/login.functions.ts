@@ -24,16 +24,17 @@ export const resolveLoginEmailByCedula = createServerFn({ method: "POST" })
   });
 
 /**
- * Devuelve rol + estado del usuario autenticado desde el server (bypassing RLS)
- * para que el cliente pueda enrutar tras un signIn recién hecho sin depender de
- * que la sesión fresca haya propagado auth.uid() para queries RLS-scoped.
- * Usa el middleware que valida el JWT y extrae userId de los claims.
+ * Devuelve rol + estado del usuario autenticado desde el server para que el
+ * cliente pueda enrutar tras un signIn recién hecho sin depender de que la
+ * sesión fresca haya propagado auth.uid() en las cookies del browser.
+ * Usa el cliente RLS-scoped del middleware (publishable key + JWT del user),
+ * no requiere service_role — auth.uid() se toma directamente del token
+ * validado, evitando la race condition del browser.
  */
 export const getSessionRouting = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await context.supabase
       .from("usuarios")
       .select("rol, estado")
       .eq("id", context.userId)
