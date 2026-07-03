@@ -23,11 +23,24 @@ export const Route = createFileRoute("/prevencionista/reportes")({
 });
 
 type RegistroRow = {
-  usuario_id: string;
+  id: string;
+  trabajador_id: string;
   estado: string;
   duracion_real_seg: number | null;
-  completada_en: string | null;
-  usuarios: { nombre: string | null; email: string } | null;
+  respondido_en: string;
+  usuarios: { nombre: string | null; email: string; documento: string | null } | null;
+  pausas_oficiales: { titulo: string } | null;
+};
+
+// El enum real de la DB es ('pendiente','hecha','rechazada','vencida','postpuesta').
+// El trabajador solo produce 'hecha' y 'postpuesta' (RLS reg_insert_self permite
+// además 'rechazada'). "hecha" = pausa completada.
+const ESTADO_LABEL: Record<string, string> = {
+  hecha: "Completada",
+  postpuesta: "Postpuesta",
+  rechazada: "Rechazada",
+  vencida: "Vencida",
+  pendiente: "Pendiente",
 };
 
 function ReportesPage() {
@@ -48,34 +61,44 @@ function ReportesPage() {
         .eq("id", usuario!.empresa_id!)
         .maybeSingle();
 
+      // RLS (reg_select_staff) ya restringe a la empresa del prevencionista.
       const { data: registros, error } = await supabase
         .from("pausa_registros")
-        .select("usuario_id, estado, duracion_real_seg, completada_en, usuarios(nombre, email)")
-        .gte("completada_en", monthStart.toISOString())
+        .select(
+          "id, trabajador_id, estado, duracion_real_seg, respondido_en, usuarios(nombre, email, documento), pausas_oficiales(titulo)",
+        )
+        .gte("respondido_en", monthStart.toISOString())
+        .order("respondido_en", { ascending: true })
         .returns<RegistroRow[]>();
       if (error) throw error;
 
-      const porTrabajador = new Map<string, { nombre: string; completadas: number; postpuestas: number; omitidas: number; total: number; seg: number }>();
+      const porTrabajador = new Map<
+        string,
+        { nombre: string; completadas: number; postpuestas: number; rechazadas: number; total: number; seg: number }
+      >();
       for (const r of registros ?? []) {
-        const k = r.usuario_id;
+        const k = r.trabajador_id;
         const nombre = r.usuarios?.nombre || r.usuarios?.email || "—";
-        const cur = porTrabajador.get(k) ?? { nombre, completadas: 0, postpuestas: 0, omitidas: 0, total: 0, seg: 0 };
+        const cur =
+          porTrabajador.get(k) ??
+          { nombre, completadas: 0, postpuestas: 0, rechazadas: 0, total: 0, seg: 0 };
         cur.total += 1;
-        if (r.estado === "completada") cur.completadas += 1;
+        if (r.estado === "hecha") cur.completadas += 1;
         else if (r.estado === "postpuesta") cur.postpuestas += 1;
-        else if (r.estado === "omitida") cur.omitidas += 1;
+        else if (r.estado === "rechazada") cur.rechazadas += 1;
         cur.seg += r.duracion_real_seg ?? 0;
         porTrabajador.set(k, cur);
       }
 
       const total = registros?.length ?? 0;
-      const completadas = registros?.filter((r) => r.estado === "completada").length ?? 0;
+      const completadas = registros?.filter((r) => r.estado === "hecha").length ?? 0;
       const adherencia = total > 0 ? Math.round((completadas / total) * 100) : 0;
 
       return {
         empresa: empresa?.nombre ?? "Empresa",
         kpis: { total, completadas, adherencia },
         trabajadores: Array.from(porTrabajador.values()).sort((a, b) => b.completadas - a.completadas),
+        eventos: registros ?? [],
       };
     },
   });
@@ -84,7 +107,7 @@ function ReportesPage() {
     if (!reportQuery.data) return;
     setGenerating(true);
     try {
-      const { empresa, kpis, trabajadores } = reportQuery.data;
+      const { empresa, kpis, trabajadores, eventos } = reportQuery.data;
       const doc = new jsPDF();
       const mes = monthStart.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
 
@@ -111,15 +134,46 @@ function ReportesPage() {
       });
 
       autoTable(doc, {
-        head: [["Trabajador", "Completadas", "Postpuestas", "Omitidas", "Min. totales"]],
+        head: [["Trabajador", "Completadas", "Postpuestas", "Rechazadas", "Min. totales"]],
         body: trabajadores.map((t) => [
           t.nombre,
           t.completadas,
           t.postpuestas,
-          t.omitidas,
+          t.rechazadas,
           Math.round(t.seg / 60),
         ]),
       });
+
+      // Detalle por evento — evidencia auditable append-only. Cada fila es un
+      // registro individual de pausa_registros con su fecha/hora, trabajador,
+      // cédula, pausa, respuesta y un id verificable contra la base de datos.
+      if (eventos.length > 0) {
+        doc.addPage();
+        doc.setFontSize(14);
+        doc.text("Detalle de registros (evidencia auditable)", 14, 20);
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text(
+          "Registro append-only. Cada fila corresponde a una respuesta única del trabajador.",
+          14,
+          26,
+        );
+        doc.setTextColor(0);
+        autoTable(doc, {
+          startY: 30,
+          styles: { fontSize: 7 },
+          head: [["Fecha y hora", "Trabajador", "Cédula", "Pausa", "Respuesta", "Dur. (s)", "ID registro"]],
+          body: eventos.map((e) => [
+            new Date(e.respondido_en).toLocaleString("es-CO"),
+            e.usuarios?.nombre || e.usuarios?.email || "—",
+            e.usuarios?.documento || "—",
+            e.pausas_oficiales?.titulo || "—",
+            ESTADO_LABEL[e.estado] ?? e.estado,
+            e.estado === "hecha" && e.duracion_real_seg != null ? String(e.duracion_real_seg) : "—",
+            e.id.slice(0, 8),
+          ]),
+        });
+      }
 
       const pageHeight = doc.internal.pageSize.height;
       doc.setFontSize(8);

@@ -10,8 +10,9 @@ type AdminClient = SupabaseClient;
 // ============================================================
 // Server Function: importWorkers
 // Alta de trabajadores en 3 modos (individual | mini | csv).
-// Crea filas en public.usuarios con rol='trabajador' y dispara magic link
-// vía Supabase Auth Admin. Honra el trigger check_plan_limit del 0008.
+// Crea filas en public.usuarios con rol='trabajador' y password_set=false.
+// NO crea auth.user ni envía correo: el propio trabajador se auto-registra
+// en /login → "Crear cuenta". Honra el trigger check_plan_limit del 0008.
 // ============================================================
 
 const altaSchema = z.object({

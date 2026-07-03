@@ -81,16 +81,21 @@ function LoginPage() {
     if (typeof window === "undefined") return;
     const hash = window.location.hash ?? "";
     const search = window.location.search ?? "";
-    if (
+    const hasAuthCallback =
       hash.includes("access_token=") ||
       hash.includes("error=") ||
-      /[?&](code|token_hash|error)=/.test(search)
-    ) {
-      // Si parece recovery, redirige a restablecer; si no, a magic-link.
-      const isRecovery = hash.includes("type=recovery") || /[?&]type=recovery/.test(search);
-      const dest = isRecovery ? "/restablecer-password" : "/magic-link";
-      window.location.replace(`${dest}${search}${hash}`);
+      /[?&](code|token_hash|error)=/.test(search);
+    if (!hasAuthCallback) return;
+    const isRecovery =
+      hash.includes("type=recovery") || /[?&]type=recovery/.test(search);
+    if (isRecovery) {
+      // Único callback de auth vigente: recuperación de contraseña.
+      window.location.replace(`/restablecer-password${search}${hash}`);
+      return;
     }
+    // Ya no existe flujo magic link: limpiamos cualquier token residual de la
+    // URL y dejamos al usuario en /login sin redirigir a rutas eliminadas.
+    window.history.replaceState(null, "", window.location.pathname);
   }, []);
 
   return (
@@ -99,7 +104,7 @@ function LoginPage() {
         <header className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight">Iniciar sesión</h1>
           <p className="text-sm text-muted-foreground">
-            Entra con tu cédula y contraseña. La primera vez usaste un enlace por correo.
+            Entra con tu cédula y contraseña. ¿Primera vez? Ve a "Crear cuenta".
           </p>
         </header>
 

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, CalendarClock, FileText, Home, LogIn, ShieldCheck, Stethoscope, Sparkles, User, Users } from "lucide-react";
+import { Activity, CalendarClock, FileText, Home, LogIn, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 import { ServiceWorkerBadge } from "./sw-badge";
 import { PwaInstallButton } from "./pwa-install-button";
 import { ReConsentGate } from "./re-consent-gate";
@@ -31,7 +31,6 @@ type NavItem = {
     | "/trabajador"
     | "/trabajador/historial"
     | "/login"
-    | "/diagnostico"
     | "/perfil"
     | "/politica-tratamiento-datos"
     | "/terminos-condiciones";
@@ -62,7 +61,6 @@ const guestNav: NavItem[] = [
 const devNav: NavItem[] = [
   { to: "/trabajador", label: "Trabajador", icon: User },
   { to: "/prevencionista", label: "Prevencionista", icon: ShieldCheck, exact: true },
-  { to: "/diagnostico", label: "Diag", icon: Stethoscope },
 ];
 
 export function AppShell({ children }: AppShellProps) {
