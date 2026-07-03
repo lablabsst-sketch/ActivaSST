@@ -353,7 +353,7 @@ const pwSchema = z
 
 type Step1 =
   | { kind: "ask" }
-  | { kind: "confirm"; usuario_id: string; email: string; nombre: string };
+  | { kind: "confirm"; usuario_id: string; email_mask: string };
 
 function RegisterFlow({
   onRegistered,
@@ -375,8 +375,7 @@ function RegisterFlow({
   return (
     <RegisterPasswordStep
       usuario_id={step.usuario_id}
-      email={step.email}
-      nombre={step.nombre}
+      email_mask={step.email_mask}
       onBack={() => setStep({ kind: "ask" })}
       onRegistered={onRegistered}
       onAlreadyRegistered={onAlreadyRegistered}
@@ -388,7 +387,7 @@ function RegisterIdStep({
   onFound,
   onAlreadyRegistered,
 }: {
-  onFound: (p: { usuario_id: string; email: string; nombre: string }) => void;
+  onFound: (p: { usuario_id: string; email_mask: string }) => void;
   onAlreadyRegistered: (email: string) => void;
 }) {
   const {
@@ -412,7 +411,7 @@ function RegisterIdStep({
         }
         return;
       }
-      onFound({ usuario_id: res.usuario_id, email: res.email, nombre: res.nombre });
+      onFound({ usuario_id: res.usuario_id, email_mask: res.email_mask });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error de conexión");
     }
@@ -444,15 +443,13 @@ function RegisterIdStep({
 
 function RegisterPasswordStep({
   usuario_id,
-  email,
-  nombre,
+  email_mask,
   onBack,
   onRegistered,
   onAlreadyRegistered,
 }: {
   usuario_id: string;
-  email: string;
-  nombre: string;
+  email_mask: string;
   onBack: () => void;
   onRegistered: (meta: { rol: UserRol; estado: UserEstado }) => void;
   onAlreadyRegistered: (email: string) => void;
@@ -468,6 +465,9 @@ function RegisterPasswordStep({
       const reg = await completeRegistration({
         data: { usuario_id, password: v.password },
       });
+      // El email en claro solo se conoce tras completar el registro (el server
+      // lo devuelve una vez creada la cuenta). Se usa para el signIn.
+      const email = reg.email;
       // signInWithPassword puede fallar por race-condition (auth.users recién creado).
       // Reintenta una vez con un pequeño delay antes de derivar al flujo de login normal.
       let attempt = await supabase.auth.signInWithPassword({
@@ -498,8 +498,8 @@ function RegisterPasswordStep({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="rounded-md border bg-muted/30 p-3 text-sm">
-        <p className="font-medium">{nombre || "Cuenta encontrada"}</p>
-        <p className="text-xs text-muted-foreground break-all">{email}</p>
+        <p className="font-medium">Cuenta encontrada</p>
+        <p className="text-xs text-muted-foreground break-all">{email_mask}</p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="reg-pw">Nueva contraseña</Label>

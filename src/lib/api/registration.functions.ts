@@ -14,6 +14,24 @@ const checkSchema = z.object({
   identificador: z.string().trim().min(4),
 });
 
+/**
+ * Enmascara un email para mostrarlo como confirmación sin exponerlo en claro.
+ * ej. "juan.perez@empresa.com" -> "ju••••@e••••.com". Evita que este server fn
+ * (invocable directamente) sirva para enumerar correos/nombres a partir de
+ * una cédula. El email en claro solo se devuelve tras completeRegistration,
+ * cuando el usuario ya probó control de la cuenta al fijar su contraseña.
+ */
+function maskEmail(email: string): string {
+  const [user, domain] = email.split("@");
+  if (!user || !domain) return "•••";
+  const maskPart = (s: string, keep: number) =>
+    s.length <= keep ? s + "•" : s.slice(0, keep) + "•".repeat(Math.max(1, s.length - keep));
+  const dotIdx = domain.lastIndexOf(".");
+  const dName = dotIdx > 0 ? domain.slice(0, dotIdx) : domain;
+  const tld = dotIdx > 0 ? domain.slice(dotIdx) : "";
+  return `${maskPart(user, 2)}@${maskPart(dName, 1)}${tld}`;
+}
+
 export const checkRegistrationEligibility = createServerFn({ method: "POST" })
   .inputValidator((d) => checkSchema.parse(d))
   .handler(async ({ data }) => {
@@ -25,7 +43,7 @@ export const checkRegistrationEligibility = createServerFn({ method: "POST" })
 
     const query = supabaseAdmin
       .from("usuarios")
-      .select("id, email, nombre, password_set, estado")
+      .select("id, email, password_set, estado")
       .limit(1);
     const { data: row, error } = isEmail
       ? await query.ilike("email", id).maybeSingle()
@@ -46,11 +64,12 @@ export const checkRegistrationEligibility = createServerFn({ method: "POST" })
       };
     }
 
+    // No devolvemos email/nombre en claro: solo el id y un email enmascarado
+    // para que el usuario reconozca su cuenta sin permitir harvesting.
     return {
       ok: true as const,
       usuario_id: row.id,
-      email: row.email,
-      nombre: row.nombre ?? "",
+      email_mask: maskEmail(row.email),
     };
   });
 

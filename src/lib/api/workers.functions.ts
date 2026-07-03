@@ -16,7 +16,12 @@ type AdminClient = SupabaseClient;
 // ============================================================
 
 const altaSchema = z.object({
-  documento: z.string().min(5).max(20),
+  // Solo dígitos/letras/guion: evita metacaracteres de PostgREST (coma,
+  // paréntesis) que podrían romper o manipular el filtro .or() de más abajo.
+  documento: z
+    .string()
+    .trim()
+    .regex(/^[0-9A-Za-z-]{5,20}$/, "Documento inválido (5-20, solo letras, números o guion)"),
   nombre: z.string().optional(),
   email: z.string().email(),
   tipo_ids: z.array(z.string().uuid()).optional(),
