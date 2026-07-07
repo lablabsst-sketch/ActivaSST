@@ -1,12 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PausaReminderBanner } from "@/components/pausa-reminder-banner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
-import { proximosSlots, slotsHoyCount, type ProgInput } from "@/lib/dias-horas";
+import {
+  proximosSlots,
+  slotsHoyCount,
+  slotsPendientesAhora,
+  type ProgInput,
+} from "@/lib/dias-horas";
 
 export const Route = createFileRoute("/trabajador")({
   head: () => ({ meta: [{ title: "Mis pausas — Activa SST" }] }),
@@ -52,21 +59,21 @@ function TrabajadorPage() {
     },
   });
 
-  const completadasHoyQ = useQuery({
-    queryKey: ["completadas-hoy", userId],
+  const registrosHoyQ = useQuery({
+    queryKey: ["registros-hoy", userId],
     enabled: !!userId,
     queryFn: async () => {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("pausa_registros")
-        .select("id", { count: "exact", head: true })
+        .select("programacion_id, respondido_en, estado")
         .eq("trabajador_id", userId!)
-        .eq("estado", "hecha")
         .gte("respondido_en", startOfDay.toISOString());
       if (error) throw error;
-      return count ?? 0;
+      return data ?? [];
     },
+    refetchInterval: 60_000,
   });
 
   const pausasMapQ = useQuery({
@@ -80,10 +87,28 @@ function TrabajadorPage() {
     },
   });
 
-  const slots = proximosSlots(progsQ.data ?? [], tiposQ.data ?? []);
+  // Reloj vivo: re-evalúa slots/recordatorio cada 30 s sin recargar la página.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const progs = progsQ.data ?? [];
+  const tipos = tiposQ.data ?? [];
+  const registrosHoy = registrosHoyQ.data ?? [];
+
+  const pendientes = slotsPendientesAhora(progs, tipos, registrosHoy, now);
+  const pendienteAhora = pendientes[0];
+  const pendienteInfo = pendienteAhora
+    ? pausasMapQ.data?.get(pendienteAhora.pausa_oficial_id)
+    : undefined;
+
+  const slots = proximosSlots(progs, tipos, now);
   const proxima = slots[0];
   const pausaInfo = proxima ? pausasMapQ.data?.get(proxima.pausa_oficial_id) : undefined;
-  const totalHoy = slotsHoyCount(progsQ.data ?? [], tiposQ.data ?? []);
+  const totalHoy = slotsHoyCount(progs, tipos, now);
+  const completadasHoy = registrosHoy.filter((r) => r.estado === "hecha").length;
 
   return (
     <AppShell>
@@ -94,6 +119,14 @@ function TrabajadorPage() {
           </p>
           <h1 className="text-2xl font-bold tracking-tight">Tu jornada activa</h1>
         </header>
+
+        {pendienteAhora && (
+          <PausaReminderBanner
+            slot={pendienteAhora}
+            titulo={pendienteInfo?.titulo}
+            pendientesExtra={pendientes.length - 1}
+          />
+        )}
 
         <Card>
           <CardHeader>
@@ -132,8 +165,8 @@ function TrabajadorPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {completadasHoyQ.data ?? 0} de {totalHoy} pausas completadas.
-              {totalHoy > 0 && completadasHoyQ.data === totalHoy && " ¡Excelente!"}
+              {completadasHoy} de {totalHoy} pausas completadas.
+              {totalHoy > 0 && completadasHoy === totalHoy && " ¡Excelente!"}
             </p>
           </CardContent>
         </Card>

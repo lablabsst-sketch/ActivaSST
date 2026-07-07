@@ -92,6 +92,68 @@ export function proximosSlots(
   return out.sort((a, b) => a.enMinutos - b.enMinutos);
 }
 
+/**
+ * Slot cuya hora YA llegó hoy y sigue dentro de la ventana de gracia sin
+ * que el trabajador lo haya atendido. Es la base del recordatorio in-app.
+ */
+export interface SlotPendiente {
+  programacion_id: string;
+  pausa_oficial_id: string;
+  nombre: string;
+  hora: string; // HH:MM
+  fecha: Date; // fecha+hora programada del slot
+  atrasadoMin: number; // minutos transcurridos desde la hora del slot
+}
+
+/**
+ * Devuelve los slots de HOY que ya iniciaron (hora <= ahora) y siguen dentro
+ * de `ventanaMin` sin registro asociado. Un slot se considera atendido si hay
+ * un registro de esa programación cuyo `respondido_en` cae dentro de la ventana
+ * del slot (cubre tanto "hecha" como "postpuesta").
+ */
+export function slotsPendientesAhora(
+  progs: ProgInput[],
+  tiposTrabajador: string[] | null,
+  registros: { programacion_id: string; respondido_en: string }[],
+  now: Date = new Date(),
+  ventanaMin = 60,
+): SlotPendiente[] {
+  const dow = now.getDay();
+  const aplicaTipo = (p: ProgInput) => {
+    if (!p.tipos_trabajo_objetivo?.length) return true; // sin filtro = todos
+    if (!tiposTrabajador?.length) return false;
+    return p.tipos_trabajo_objetivo.some((t) => tiposTrabajador.includes(t));
+  };
+  const out: SlotPendiente[] = [];
+  for (const p of progs) {
+    if (!aplicaTipo(p)) continue;
+    if (!p.dias_semana.includes(dow)) continue;
+    for (const h of p.horas) {
+      const [hh, mm] = h.split(":").map((s) => parseInt(s, 10));
+      const slot = new Date(now);
+      slot.setHours(hh || 0, mm || 0, 0, 0);
+      const atrasadoMin = (now.getTime() - slot.getTime()) / 60000;
+      if (atrasadoMin < 0 || atrasadoMin > ventanaMin) continue;
+      const finVentana = slot.getTime() + ventanaMin * 60000;
+      const atendido = registros.some((r) => {
+        if (r.programacion_id !== p.id) return false;
+        const t = new Date(r.respondido_en).getTime();
+        return t >= slot.getTime() && t <= finVentana;
+      });
+      if (atendido) continue;
+      out.push({
+        programacion_id: p.id,
+        pausa_oficial_id: p.pausa_oficial_id,
+        nombre: p.nombre,
+        hora: fmtHora(h),
+        fecha: slot,
+        atrasadoMin: Math.round(atrasadoMin),
+      });
+    }
+  }
+  return out.sort((a, b) => b.atrasadoMin - a.atrasadoMin); // el más atrasado primero
+}
+
 /** Cuenta cuántos slots aplican HOY al trabajador. */
 export function slotsHoyCount(
   progs: ProgInput[],
