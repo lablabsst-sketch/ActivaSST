@@ -17,7 +17,10 @@ export const Route = createFileRoute("/prevencionista/reportes")({
   head: () => ({
     meta: [
       { title: "Reportes — Activa SST" },
-      { name: "description", content: "Reportes mensuales de pausas activas para cumplimiento SST." },
+      {
+        name: "description",
+        content: "Reportes mensuales de pausas activas para cumplimiento SST.",
+      },
     ],
   }),
   component: ReportesPage,
@@ -158,17 +161,15 @@ function ReportesPage() {
       for (const r of registros ?? []) {
         const k = r.trabajador_id;
         const nombre = nombrePorTrab.get(k) || r.usuarios?.nombre || r.usuarios?.email || "—";
-        const cur =
-          porTrabajador.get(k) ??
-          {
-            nombre,
-            asignadas: asignadasPorTrab.get(k) ?? 0,
-            completadas: 0,
-            postpuestas: 0,
-            rechazadas: 0,
-            total: 0,
-            seg: 0,
-          };
+        const cur = porTrabajador.get(k) ?? {
+          nombre,
+          asignadas: asignadasPorTrab.get(k) ?? 0,
+          completadas: 0,
+          postpuestas: 0,
+          rechazadas: 0,
+          total: 0,
+          seg: 0,
+        };
         cur.total += 1;
         if (r.estado === "hecha") cur.completadas += 1;
         else if (r.estado === "postpuesta") cur.postpuestas += 1;
@@ -233,7 +234,9 @@ function ReportesPage() {
       });
 
       autoTable(doc, {
-        head: [["Trabajador", "Asignadas", "Completadas", "Postpuestas", "Rechazadas", "Adher.", "Min."]],
+        head: [
+          ["Trabajador", "Asignadas", "Completadas", "Postpuestas", "Rechazadas", "Adher.", "Min."],
+        ],
         body: trabajadores.map((t) => [
           t.nombre,
           t.asignadas,
@@ -263,7 +266,17 @@ function ReportesPage() {
         autoTable(doc, {
           startY: 30,
           styles: { fontSize: 7 },
-          head: [["Fecha y hora", "Trabajador", "Cédula", "Pausa", "Respuesta", "Dur. (s)", "ID registro"]],
+          head: [
+            [
+              "Fecha y hora",
+              "Trabajador",
+              "Cédula",
+              "Pausa",
+              "Respuesta",
+              "Dur. (s)",
+              "ID registro",
+            ],
+          ],
           body: eventos.map((e) => [
             new Date(e.respondido_en).toLocaleString("es-CO"),
             e.usuarios?.nombre || e.usuarios?.email || "—",
@@ -300,14 +313,17 @@ function ReportesPage() {
       <div className="space-y-4">
         <header>
           <h1 className="text-2xl font-bold">Reportes</h1>
-          <p className="text-sm text-muted-foreground">Resumen mensual de adherencia y pausas activas.</p>
+          <p className="text-sm text-muted-foreground">
+            Resumen mensual de adherencia y pausas activas.
+          </p>
         </header>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <FileText className="size-4" aria-hidden />
-              Reporte mensual ({monthStart.toLocaleDateString("es-CO", { month: "long", year: "numeric" })})
+              Reporte mensual (
+              {monthStart.toLocaleDateString("es-CO", { month: "long", year: "numeric" })})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

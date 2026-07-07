@@ -143,10 +143,7 @@ function TrabajadorPage() {
                   {pausaInfo ? ` · ${pausaInfo.duracion_min} min` : ""}
                 </p>
                 <Button asChild size="sm" className="mt-2">
-                  <Link
-                    to="/trabajador/pausa/$id"
-                    params={{ id: proxima.programacion_id }}
-                  >
+                  <Link to="/trabajador/pausa/$id" params={{ id: proxima.programacion_id }}>
                     <Play className="size-4" /> Empezar
                   </Link>
                 </Button>
