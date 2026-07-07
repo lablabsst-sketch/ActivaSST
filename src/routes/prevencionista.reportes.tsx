@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
+import { contarSlotsEsperados, type ProgEsperado } from "@/lib/dias-horas";
 import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,6 +62,9 @@ function ReportesPage() {
         .eq("id", usuario!.empresa_id!)
         .maybeSingle();
 
+      const ahora = new Date();
+      const finPeriodo = ahora; // el periodo llega hasta "ahora" (no exige slots futuros)
+
       // RLS (reg_select_staff) ya restringe a la empresa del prevencionista.
       const { data: registros, error } = await supabase
         .from("pausa_registros")
@@ -72,16 +76,99 @@ function ReportesPage() {
         .returns<RegistroRow[]>();
       if (error) throw error;
 
+      // Programaciones activas de la empresa (base del denominador).
+      const { data: progsRaw, error: progErr } = await supabase
+        .from("programaciones")
+        .select("id, dias_semana, horas, tipos_trabajo_objetivo, created_at")
+        .eq("empresa_id", usuario!.empresa_id!)
+        .eq("activa", true);
+      if (progErr) throw progErr;
+      const progs: ProgEsperado[] = (progsRaw ?? []).map((p) => ({
+        id: p.id,
+        dias_semana: p.dias_semana,
+        horas: p.horas,
+        tipos_trabajo_objetivo: p.tipos_trabajo_objetivo,
+        creadoEn: new Date(p.created_at),
+      }));
+
+      // Trabajadores vigentes de la empresa + sus tipos de trabajo.
+      const { data: trabRaw, error: trabErr } = await supabase
+        .from("usuarios")
+        .select("id, nombre, email, created_at")
+        .eq("empresa_id", usuario!.empresa_id!)
+        .eq("rol", "trabajador")
+        .in("estado", ["activo", "pendiente"]);
+      if (trabErr) throw trabErr;
+      const trabajadoresBase = trabRaw ?? [];
+
+      const { data: tiposRaw } = await supabase
+        .from("usuario_tipos_trabajo")
+        .select("usuario_id, tipo_id");
+      const tiposPorTrab = new Map<string, string[]>();
+      for (const t of tiposRaw ?? []) {
+        const arr = tiposPorTrab.get(t.usuario_id) ?? [];
+        arr.push(t.tipo_id);
+        tiposPorTrab.set(t.usuario_id, arr);
+      }
+
+      // Denominador on-demand: pausas esperadas por trabajador en el periodo.
+      const asignadasPorTrab = new Map<string, number>();
+      let asignadas = 0;
+      for (const tr of trabajadoresBase) {
+        const esperadas = contarSlotsEsperados(
+          progs,
+          tiposPorTrab.get(tr.id) ?? [],
+          monthStart,
+          finPeriodo,
+          new Date(tr.created_at),
+        );
+        asignadasPorTrab.set(tr.id, esperadas);
+        asignadas += esperadas;
+      }
+
+      const nombrePorTrab = new Map<string, string>(
+        trabajadoresBase.map((tr) => [tr.id, tr.nombre || tr.email || "—"]),
+      );
+
       const porTrabajador = new Map<
         string,
-        { nombre: string; completadas: number; postpuestas: number; rechazadas: number; total: number; seg: number }
+        {
+          nombre: string;
+          asignadas: number;
+          completadas: number;
+          postpuestas: number;
+          rechazadas: number;
+          total: number;
+          seg: number;
+        }
       >();
+      // Sembrar con todos los trabajadores vigentes (aunque no tengan registros)
+      // para que aparezcan sus incumplimientos.
+      for (const tr of trabajadoresBase) {
+        porTrabajador.set(tr.id, {
+          nombre: nombrePorTrab.get(tr.id) ?? "—",
+          asignadas: asignadasPorTrab.get(tr.id) ?? 0,
+          completadas: 0,
+          postpuestas: 0,
+          rechazadas: 0,
+          total: 0,
+          seg: 0,
+        });
+      }
       for (const r of registros ?? []) {
         const k = r.trabajador_id;
-        const nombre = r.usuarios?.nombre || r.usuarios?.email || "—";
+        const nombre = nombrePorTrab.get(k) || r.usuarios?.nombre || r.usuarios?.email || "—";
         const cur =
           porTrabajador.get(k) ??
-          { nombre, completadas: 0, postpuestas: 0, rechazadas: 0, total: 0, seg: 0 };
+          {
+            nombre,
+            asignadas: asignadasPorTrab.get(k) ?? 0,
+            completadas: 0,
+            postpuestas: 0,
+            rechazadas: 0,
+            total: 0,
+            seg: 0,
+          };
         cur.total += 1;
         if (r.estado === "hecha") cur.completadas += 1;
         else if (r.estado === "postpuesta") cur.postpuestas += 1;
@@ -92,12 +179,22 @@ function ReportesPage() {
 
       const total = registros?.length ?? 0;
       const completadas = registros?.filter((r) => r.estado === "hecha").length ?? 0;
-      const adherencia = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      // Adherencia real = completadas / esperadas. Si no hay programaciones
+      // aún, cae a completadas/total para no dividir por cero.
+      const adherencia =
+        asignadas > 0
+          ? Math.round((completadas / asignadas) * 100)
+          : total > 0
+            ? Math.round((completadas / total) * 100)
+            : 0;
+      const incumplidas = Math.max(0, asignadas - total);
 
       return {
         empresa: empresa?.nombre ?? "Empresa",
-        kpis: { total, completadas, adherencia },
-        trabajadores: Array.from(porTrabajador.values()).sort((a, b) => b.completadas - a.completadas),
+        kpis: { total, asignadas, completadas, incumplidas, adherencia },
+        trabajadores: Array.from(porTrabajador.values()).sort(
+          (a, b) => b.completadas - a.completadas,
+        ),
         eventos: registros ?? [],
       };
     },
@@ -127,19 +224,23 @@ function ReportesPage() {
         startY: 66,
         head: [["Indicador", "Valor"]],
         body: [
-          ["Pausas totales registradas", String(kpis.total)],
+          ["Pausas asignadas (esperadas)", String(kpis.asignadas)],
           ["Pausas completadas", String(kpis.completadas)],
+          ["Pausas incumplidas", String(kpis.incumplidas)],
+          ["Respuestas registradas", String(kpis.total)],
           ["Adherencia global", `${kpis.adherencia}%`],
         ],
       });
 
       autoTable(doc, {
-        head: [["Trabajador", "Completadas", "Postpuestas", "Rechazadas", "Min. totales"]],
+        head: [["Trabajador", "Asignadas", "Completadas", "Postpuestas", "Rechazadas", "Adher.", "Min."]],
         body: trabajadores.map((t) => [
           t.nombre,
+          t.asignadas,
           t.completadas,
           t.postpuestas,
           t.rechazadas,
+          `${t.asignadas > 0 ? Math.round((t.completadas / t.asignadas) * 100) : 0}%`,
           Math.round(t.seg / 60),
         ]),
       });
@@ -220,14 +321,18 @@ function ReportesPage() {
                 No se pudieron cargar los datos. Intenta de nuevo.
               </p>
             ) : reportQuery.data ? (
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
                 <div>
-                  <p className="text-2xl font-semibold">{reportQuery.data.kpis.total}</p>
-                  <p className="text-xs text-muted-foreground">Pausas totales</p>
+                  <p className="text-2xl font-semibold">{reportQuery.data.kpis.asignadas}</p>
+                  <p className="text-xs text-muted-foreground">Asignadas</p>
                 </div>
                 <div>
                   <p className="text-2xl font-semibold">{reportQuery.data.kpis.completadas}</p>
                   <p className="text-xs text-muted-foreground">Completadas</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-semibold">{reportQuery.data.kpis.incumplidas}</p>
+                  <p className="text-xs text-muted-foreground">Incumplidas</p>
                 </div>
                 <div>
                   <p className="text-2xl font-semibold">{reportQuery.data.kpis.adherencia}%</p>
@@ -238,17 +343,23 @@ function ReportesPage() {
 
             <Button
               onClick={generarPDF}
-              disabled={generating || !reportQuery.data || reportQuery.data.kpis.total === 0}
+              disabled={
+                generating ||
+                !reportQuery.data ||
+                (reportQuery.data.kpis.total === 0 && reportQuery.data.kpis.asignadas === 0)
+              }
               className="w-full min-h-11"
             >
               <FileDown className="size-4" aria-hidden />
               {generating ? "Generando…" : "Descargar PDF"}
             </Button>
-            {reportQuery.data?.kpis.total === 0 && (
-              <p className="text-xs text-muted-foreground text-center">
-                Aún no hay pausas registradas este mes.
-              </p>
-            )}
+            {reportQuery.data &&
+              reportQuery.data.kpis.total === 0 &&
+              reportQuery.data.kpis.asignadas === 0 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Aún no hay pausas programadas ni registradas este mes.
+                </p>
+              )}
           </CardContent>
         </Card>
       </div>

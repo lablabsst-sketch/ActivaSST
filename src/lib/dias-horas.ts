@@ -154,6 +154,69 @@ export function slotsPendientesAhora(
   return out.sort((a, b) => b.atrasadoMin - a.atrasadoMin); // el más atrasado primero
 }
 
+/**
+ * Programación con metadatos para calcular el DENOMINADOR de cumplimiento
+ * (cuántas pausas se esperaban) sin materializar filas en la base.
+ */
+export interface ProgEsperado {
+  id: string;
+  dias_semana: number[];
+  horas: string[];
+  tipos_trabajo_objetivo: string[];
+  creadoEn: Date; // desde cuándo existe la programación
+}
+
+function inicioDia(d: Date): number {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.getTime();
+}
+
+/**
+ * Cuenta cuántas pausas se ESPERABAN de un trabajador en [desde, hasta].
+ * Es el denominador de adherencia calculado on-demand (no se guardan filas
+ * "vencida" para no engordar la base). Solo cuenta slots ya exigibles
+ * (hora <= hasta) y respeta la fecha de creación de la programación y del
+ * trabajador para no exigir pausas anteriores a su existencia.
+ */
+export function contarSlotsEsperados(
+  progs: ProgEsperado[],
+  tiposTrabajador: string[] | null,
+  desde: Date,
+  hasta: Date,
+  trabajadorDesde: Date,
+): number {
+  const aplicaTipo = (p: ProgEsperado) => {
+    if (!p.tipos_trabajo_objetivo?.length) return true; // sin filtro = todos
+    if (!tiposTrabajador?.length) return false;
+    return p.tipos_trabajo_objetivo.some((t) => tiposTrabajador.includes(t));
+  };
+  const trabDesdeDia = inicioDia(trabajadorDesde);
+  let count = 0;
+  const dia = new Date(desde);
+  dia.setHours(0, 0, 0, 0);
+  const finMs = hasta.getTime();
+  while (dia.getTime() <= finMs) {
+    const dow = dia.getDay();
+    const diaMs = dia.getTime();
+    for (const p of progs) {
+      if (!aplicaTipo(p)) continue;
+      if (!p.dias_semana.includes(dow)) continue;
+      if (diaMs < inicioDia(p.creadoEn)) continue;
+      if (diaMs < trabDesdeDia) continue;
+      for (const h of p.horas) {
+        const [hh, mm] = h.split(":").map((s) => parseInt(s, 10));
+        const slot = new Date(dia);
+        slot.setHours(hh || 0, mm || 0, 0, 0);
+        if (slot.getTime() > finMs) continue; // slot futuro: aún no exigible
+        count += 1;
+      }
+    }
+    dia.setDate(dia.getDate() + 1);
+  }
+  return count;
+}
+
 /** Cuenta cuántos slots aplican HOY al trabajador. */
 export function slotsHoyCount(
   progs: ProgInput[],
