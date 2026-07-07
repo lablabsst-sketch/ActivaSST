@@ -78,25 +78,51 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "ActivaSST" },
-      { name: "description", content: "ActivaSST is a mobile-first PWA for active breaks in Colombia." },
+      {
+        name: "description",
+        content: "ActivaSST is a mobile-first PWA for active breaks in Colombia.",
+      },
+      { name: "theme-color", content: "#15803d" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Activa SST" },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "ActivaSST" },
-      { property: "og:description", content: "ActivaSST is a mobile-first PWA for active breaks in Colombia." },
+      {
+        property: "og:description",
+        content: "ActivaSST is a mobile-first PWA for active breaks in Colombia.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "ActivaSST" },
-      { name: "twitter:description", content: "ActivaSST is a mobile-first PWA for active breaks in Colombia." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73a437bc-071a-4ec6-bb65-9ad00fae8132/id-preview-4c9a23d9--47835cfc-8bed-45aa-9c8b-4e70a81388f9.lovable.app-1780333225887.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73a437bc-071a-4ec6-bb65-9ad00fae8132/id-preview-4c9a23d9--47835cfc-8bed-45aa-9c8b-4e70a81388f9.lovable.app-1780333225887.png" },
+      {
+        name: "twitter:description",
+        content: "ActivaSST is a mobile-first PWA for active breaks in Colombia.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73a437bc-071a-4ec6-bb65-9ad00fae8132/id-preview-4c9a23d9--47835cfc-8bed-45aa-9c8b-4e70a81388f9.lovable.app-1780333225887.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/73a437bc-071a-4ec6-bb65-9ad00fae8132/id-preview-4c9a23d9--47835cfc-8bed-45aa-9c8b-4e70a81388f9.lovable.app-1780333225887.png",
+      },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
