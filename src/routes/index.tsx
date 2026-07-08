@@ -36,7 +36,7 @@ function LandingPage() {
             <Link to="/login">Iniciar sesión</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="w-full">
-            <Link to="/trabajador">Soy trabajador</Link>
+            <Link to="/login">Soy trabajador</Link>
           </Button>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
