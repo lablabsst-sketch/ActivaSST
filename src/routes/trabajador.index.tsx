@@ -15,7 +15,7 @@ import {
   type ProgInput,
 } from "@/lib/dias-horas";
 
-export const Route = createFileRoute("/trabajador")({
+export const Route = createFileRoute("/trabajador/")({
   head: () => ({ meta: [{ title: "Mis pausas — Activa SST" }] }),
   component: TrabajadorPage,
 });

@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrabajadorRouteImport } from './routes/trabajador'
 import { Route as TerminosCondicionesRouteImport } from './routes/terminos-condiciones'
 import { Route as RestablecerPasswordRouteImport } from './routes/restablecer-password'
 import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
@@ -18,6 +17,7 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrabajadorIndexRouteImport } from './routes/trabajador.index'
 import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
 import { Route as TrabajadorHistorialRouteImport } from './routes/trabajador.historial'
 import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
@@ -30,11 +30,6 @@ import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
 import { Route as ApiPublicHooksReconcileUsuariosRouteImport } from './routes/api/public/hooks/reconcile-usuarios'
 
-const TrabajadorRoute = TrabajadorRouteImport.update({
-  id: '/trabajador',
-  path: '/trabajador',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TerminosCondicionesRoute = TerminosCondicionesRouteImport.update({
   id: '/terminos-condiciones',
   path: '/terminos-condiciones',
@@ -76,15 +71,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrabajadorIndexRoute = TrabajadorIndexRouteImport.update({
+  id: '/trabajador/',
+  path: '/trabajador/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrevencionistaIndexRoute = PrevencionistaIndexRouteImport.update({
   id: '/prevencionista/',
   path: '/prevencionista/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrabajadorHistorialRoute = TrabajadorHistorialRouteImport.update({
-  id: '/historial',
-  path: '/historial',
-  getParentRoute: () => TrabajadorRoute,
+  id: '/trabajador/historial',
+  path: '/trabajador/historial',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PrevencionistaTrabajadoresRoute =
   PrevencionistaTrabajadoresRouteImport.update({
@@ -126,9 +126,9 @@ const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
-  id: '/pausa/$id',
-  path: '/pausa/$id',
-  getParentRoute: () => TrabajadorRoute,
+  id: '/trabajador/pausa/$id',
+  path: '/trabajador/pausa/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksReconcileUsuariosRoute =
   ApiPublicHooksReconcileUsuariosRouteImport.update({
@@ -146,7 +146,6 @@ export interface FileRoutesByFullPath {
   '/recuperar-password': typeof RecuperarPasswordRoute
   '/restablecer-password': typeof RestablecerPasswordRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
-  '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
@@ -156,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/trabajador/': typeof TrabajadorIndexRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
   '/api/public/hooks/reconcile-usuarios': typeof ApiPublicHooksReconcileUsuariosRoute
 }
@@ -168,7 +168,6 @@ export interface FileRoutesByTo {
   '/recuperar-password': typeof RecuperarPasswordRoute
   '/restablecer-password': typeof RestablecerPasswordRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
-  '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
@@ -178,6 +177,7 @@ export interface FileRoutesByTo {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista': typeof PrevencionistaIndexRoute
+  '/trabajador': typeof TrabajadorIndexRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
   '/api/public/hooks/reconcile-usuarios': typeof ApiPublicHooksReconcileUsuariosRoute
 }
@@ -191,7 +191,6 @@ export interface FileRoutesById {
   '/recuperar-password': typeof RecuperarPasswordRoute
   '/restablecer-password': typeof RestablecerPasswordRoute
   '/terminos-condiciones': typeof TerminosCondicionesRoute
-  '/trabajador': typeof TrabajadorRouteWithChildren
   '/admin/bootstrap': typeof AdminBootstrapRoute
   '/perfil/configurar-password': typeof PerfilConfigurarPasswordRoute
   '/prevencionista/pausas': typeof PrevencionistaPausasRoute
@@ -201,6 +200,7 @@ export interface FileRoutesById {
   '/prevencionista/trabajadores': typeof PrevencionistaTrabajadoresRoute
   '/trabajador/historial': typeof TrabajadorHistorialRoute
   '/prevencionista/': typeof PrevencionistaIndexRoute
+  '/trabajador/': typeof TrabajadorIndexRoute
   '/trabajador/pausa/$id': typeof TrabajadorPausaIdRoute
   '/api/public/hooks/reconcile-usuarios': typeof ApiPublicHooksReconcileUsuariosRoute
 }
@@ -215,7 +215,6 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/restablecer-password'
     | '/terminos-condiciones'
-    | '/trabajador'
     | '/admin/bootstrap'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
@@ -225,6 +224,7 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
+    | '/trabajador/'
     | '/trabajador/pausa/$id'
     | '/api/public/hooks/reconcile-usuarios'
   fileRoutesByTo: FileRoutesByTo
@@ -237,7 +237,6 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/restablecer-password'
     | '/terminos-condiciones'
-    | '/trabajador'
     | '/admin/bootstrap'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
@@ -247,6 +246,7 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista'
+    | '/trabajador'
     | '/trabajador/pausa/$id'
     | '/api/public/hooks/reconcile-usuarios'
   id:
@@ -259,7 +259,6 @@ export interface FileRouteTypes {
     | '/recuperar-password'
     | '/restablecer-password'
     | '/terminos-condiciones'
-    | '/trabajador'
     | '/admin/bootstrap'
     | '/perfil/configurar-password'
     | '/prevencionista/pausas'
@@ -269,6 +268,7 @@ export interface FileRouteTypes {
     | '/prevencionista/trabajadores'
     | '/trabajador/historial'
     | '/prevencionista/'
+    | '/trabajador/'
     | '/trabajador/pausa/$id'
     | '/api/public/hooks/reconcile-usuarios'
   fileRoutesById: FileRoutesById
@@ -282,26 +282,21 @@ export interface RootRouteChildren {
   RecuperarPasswordRoute: typeof RecuperarPasswordRoute
   RestablecerPasswordRoute: typeof RestablecerPasswordRoute
   TerminosCondicionesRoute: typeof TerminosCondicionesRoute
-  TrabajadorRoute: typeof TrabajadorRouteWithChildren
   AdminBootstrapRoute: typeof AdminBootstrapRoute
   PrevencionistaPausasRoute: typeof PrevencionistaPausasRoute
   PrevencionistaProgramacionesRoute: typeof PrevencionistaProgramacionesRoute
   PrevencionistaReportesRoute: typeof PrevencionistaReportesRoute
   PrevencionistaSolicitudesArcoRoute: typeof PrevencionistaSolicitudesArcoRoute
   PrevencionistaTrabajadoresRoute: typeof PrevencionistaTrabajadoresRoute
+  TrabajadorHistorialRoute: typeof TrabajadorHistorialRoute
   PrevencionistaIndexRoute: typeof PrevencionistaIndexRoute
+  TrabajadorIndexRoute: typeof TrabajadorIndexRoute
+  TrabajadorPausaIdRoute: typeof TrabajadorPausaIdRoute
   ApiPublicHooksReconcileUsuariosRoute: typeof ApiPublicHooksReconcileUsuariosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trabajador': {
-      id: '/trabajador'
-      path: '/trabajador'
-      fullPath: '/trabajador'
-      preLoaderRoute: typeof TrabajadorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/terminos-condiciones': {
       id: '/terminos-condiciones'
       path: '/terminos-condiciones'
@@ -358,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trabajador/': {
+      id: '/trabajador/'
+      path: '/trabajador'
+      fullPath: '/trabajador/'
+      preLoaderRoute: typeof TrabajadorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/prevencionista/': {
       id: '/prevencionista/'
       path: '/prevencionista'
@@ -367,10 +369,10 @@ declare module '@tanstack/react-router' {
     }
     '/trabajador/historial': {
       id: '/trabajador/historial'
-      path: '/historial'
+      path: '/trabajador/historial'
       fullPath: '/trabajador/historial'
       preLoaderRoute: typeof TrabajadorHistorialRouteImport
-      parentRoute: typeof TrabajadorRoute
+      parentRoute: typeof rootRouteImport
     }
     '/prevencionista/trabajadores': {
       id: '/prevencionista/trabajadores'
@@ -423,10 +425,10 @@ declare module '@tanstack/react-router' {
     }
     '/trabajador/pausa/$id': {
       id: '/trabajador/pausa/$id'
-      path: '/pausa/$id'
+      path: '/trabajador/pausa/$id'
       fullPath: '/trabajador/pausa/$id'
       preLoaderRoute: typeof TrabajadorPausaIdRouteImport
-      parentRoute: typeof TrabajadorRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/reconcile-usuarios': {
       id: '/api/public/hooks/reconcile-usuarios'
@@ -449,20 +451,6 @@ const PerfilRouteChildren: PerfilRouteChildren = {
 const PerfilRouteWithChildren =
   PerfilRoute._addFileChildren(PerfilRouteChildren)
 
-interface TrabajadorRouteChildren {
-  TrabajadorHistorialRoute: typeof TrabajadorHistorialRoute
-  TrabajadorPausaIdRoute: typeof TrabajadorPausaIdRoute
-}
-
-const TrabajadorRouteChildren: TrabajadorRouteChildren = {
-  TrabajadorHistorialRoute: TrabajadorHistorialRoute,
-  TrabajadorPausaIdRoute: TrabajadorPausaIdRoute,
-}
-
-const TrabajadorRouteWithChildren = TrabajadorRoute._addFileChildren(
-  TrabajadorRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
@@ -472,16 +460,28 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarPasswordRoute: RecuperarPasswordRoute,
   RestablecerPasswordRoute: RestablecerPasswordRoute,
   TerminosCondicionesRoute: TerminosCondicionesRoute,
-  TrabajadorRoute: TrabajadorRouteWithChildren,
   AdminBootstrapRoute: AdminBootstrapRoute,
   PrevencionistaPausasRoute: PrevencionistaPausasRoute,
   PrevencionistaProgramacionesRoute: PrevencionistaProgramacionesRoute,
   PrevencionistaReportesRoute: PrevencionistaReportesRoute,
   PrevencionistaSolicitudesArcoRoute: PrevencionistaSolicitudesArcoRoute,
   PrevencionistaTrabajadoresRoute: PrevencionistaTrabajadoresRoute,
+  TrabajadorHistorialRoute: TrabajadorHistorialRoute,
   PrevencionistaIndexRoute: PrevencionistaIndexRoute,
+  TrabajadorIndexRoute: TrabajadorIndexRoute,
+  TrabajadorPausaIdRoute: TrabajadorPausaIdRoute,
   ApiPublicHooksReconcileUsuariosRoute: ApiPublicHooksReconcileUsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
