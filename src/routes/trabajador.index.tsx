@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
@@ -21,9 +21,25 @@ export const Route = createFileRoute("/trabajador/")({
 });
 
 function TrabajadorPage() {
-  const { usuario } = useUsuario();
+  const { session, usuario, loading } = useUsuario();
+  const navigate = useNavigate();
   const empresaId = usuario?.empresa_id;
   const userId = usuario?.id;
+
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate({ to: "/login", replace: true });
+    }
+  }, [loading, session, navigate]);
+
+  if (loading || !session) {
+    return (
+      <AppShell>
+        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
+      </AppShell>
+    );
+  }
+
 
   const tiposQ = useQuery({
     queryKey: ["mis-tipos", userId],
