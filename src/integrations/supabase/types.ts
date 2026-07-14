@@ -746,12 +746,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      current_empresa_id: { Args: never; Returns: string }
       current_password_set: { Args: never; Returns: boolean }
-      current_rol: {
-        Args: never
-        Returns: Database["public"]["Enums"]["rol_usuario"]
-      }
       email_is_whitelisted: { Args: { p_email: string }; Returns: boolean }
       get_login_email_by_cedula: { Args: { p_cedula: string }; Returns: string }
       mark_password_set: { Args: never; Returns: undefined }
