@@ -120,6 +120,15 @@ function TrabajadorPage() {
   const totalHoy = slotsHoyCount(progs, tipos, now);
   const completadasHoy = registrosHoy.filter((r) => r.estado === "hecha").length;
 
+  if (loading || !session) {
+    return (
+      <AppShell>
+        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
+      </AppShell>
+    );
+  }
+
+
   return (
     <AppShell>
       <section className="flex flex-col gap-5 pt-4">
