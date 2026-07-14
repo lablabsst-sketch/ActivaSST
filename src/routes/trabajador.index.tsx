@@ -32,13 +32,7 @@ function TrabajadorPage() {
     }
   }, [loading, session, navigate]);
 
-  if (loading || !session) {
-    return (
-      <AppShell>
-        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
-      </AppShell>
-    );
-  }
+
 
 
   const tiposQ = useQuery({
@@ -125,6 +119,15 @@ function TrabajadorPage() {
   const pausaInfo = proxima ? pausasMapQ.data?.get(proxima.pausa_oficial_id) : undefined;
   const totalHoy = slotsHoyCount(progs, tipos, now);
   const completadasHoy = registrosHoy.filter((r) => r.estado === "hecha").length;
+
+  if (loading || !session) {
+    return (
+      <AppShell>
+        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
+      </AppShell>
+    );
+  }
+
 
   return (
     <AppShell>
