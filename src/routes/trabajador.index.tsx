@@ -32,13 +32,7 @@ function TrabajadorPage() {
     }
   }, [loading, session, navigate]);
 
-  if (loading || !session) {
-    return (
-      <AppShell>
-        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
-      </AppShell>
-    );
-  }
+
 
 
   const tiposQ = useQuery({
