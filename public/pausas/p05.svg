@@ -1,0 +1,20 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura sentada meditando -->
+    <circle cx="60" cy="22" r="11" fill="#1DB954"/>
+    <!-- Ojos cerrados (paz) -->
+    <path d="M54 21 Q56 23 58 21" fill="none" stroke="#0D0D0D" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M62 21 Q64 23 66 21" fill="none" stroke="#0D0D0D" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Sonrisa -->
+    <path d="M55 26 Q60 30 65 26" fill="none" stroke="#0D0D0D" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Cuerpo sentado -->
+    <ellipse cx="60" cy="62" rx="26" ry="16" fill="#1DB954" opacity="0.3" stroke="#1DB954" stroke-width="1.5"/>
+    <!-- Brazos sobre rodillas -->
+    <line x1="48" y1="42" x2="38" y2="58" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <line x1="72" y1="42" x2="82" y2="58" stroke="#1DB954" stroke-width="7" stroke-linecap="round"/>
+    <!-- Ondas de respiración -->
+    <path d="M32 36 Q36 28 40 36 Q44 44 48 36" fill="none" stroke="#FFD166" stroke-width="2" opacity="0.7"/>
+    <path d="M72 32 Q76 24 80 32 Q84 40 88 32" fill="none" stroke="#FFD166" stroke-width="2" opacity="0.5"/>
+    <!-- Corazón mental -->
+    <path d="M55 8 Q60 4 65 8 Q70 12 60 18 Q50 12 55 8" fill="#FF6B2B" opacity="0.8"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">MENTAL</text>
+  </svg>

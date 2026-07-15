@@ -38,7 +38,7 @@ function PausaPage() {
       const { data, error } = await supabase
         .from("programaciones")
         .select(
-          "id, nombre, pausa_oficial_id, pausas_oficiales(id, titulo, duracion_min, instrucciones, video_url)",
+          "id, nombre, pausa_oficial_id, pausas_oficiales(id, codigo, titulo, duracion_min, instrucciones, video_url)",
         )
         .eq("id", programacionId)
         .maybeSingle();
@@ -50,6 +50,7 @@ function PausaPage() {
   const pausa = progQ.data?.pausas_oficiales as
     | {
         id: string;
+        codigo: string;
         titulo: string;
         duracion_min: number;
         instrucciones: string;
@@ -58,6 +59,7 @@ function PausaPage() {
     | null
     | undefined;
   const durMin = pausa?.duracion_min ?? 3;
+  const ilustracionUrl = pausa?.codigo ? `/pausas/${pausa.codigo.toLowerCase()}.svg` : null;
 
   const [secsLeft, setSecsLeft] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
@@ -166,17 +168,10 @@ function PausaPage() {
   return (
     <div className="min-h-dvh bg-background text-foreground flex flex-col">
       <header className="flex items-center justify-between px-4 py-3 safe-top">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleExit}
-          aria-label="Salir de la pausa"
-        >
+        <Button variant="ghost" size="icon" onClick={handleExit} aria-label="Salir de la pausa">
           <X className="size-5" />
         </Button>
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Modo enfoque
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Modo enfoque</p>
         <div className="w-9" />
       </header>
 
@@ -191,10 +186,7 @@ function PausaPage() {
 
             <Card>
               <CardContent className="flex flex-col items-center gap-4 py-10">
-                <p
-                  className="text-7xl font-bold tabular-nums text-primary"
-                  aria-live="polite"
-                >
+                <p className="text-7xl font-bold tabular-nums text-primary" aria-live="polite">
                   {fmt(secsLeft ?? 0)}
                 </p>
                 <div className="flex gap-2">
@@ -208,12 +200,7 @@ function PausaPage() {
                       {secsLeft === durMin * 60 ? "Empezar" : "Continuar"}
                     </Button>
                   )}
-                  <Button
-                    onClick={reset}
-                    size="lg"
-                    variant="ghost"
-                    aria-label="Reiniciar"
-                  >
+                  <Button onClick={reset} size="lg" variant="ghost" aria-label="Reiniciar">
                     <RotateCcw className="size-5" />
                   </Button>
                 </div>
@@ -240,10 +227,18 @@ function PausaPage() {
               <CardHeader>
                 <CardTitle className="text-base">Instrucciones</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-line text-sm leading-relaxed">
-                  {pausa.instrucciones}
-                </p>
+              <CardContent className="space-y-4">
+                {ilustracionUrl && (
+                  <div className="flex items-center justify-center rounded-md bg-muted py-6">
+                    <img
+                      src={ilustracionUrl}
+                      alt={`Ilustración de la pausa ${pausa.titulo}`}
+                      className="size-32"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <p className="whitespace-pre-line text-sm leading-relaxed">{pausa.instrucciones}</p>
               </CardContent>
             </Card>
 
@@ -275,7 +270,8 @@ function PausaPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Salir sin completar?</AlertDialogTitle>
             <AlertDialogDescription>
-              Si sales ahora, no se registrará esta pausa. Puedes retomarla más tarde desde tu inicio.
+              Si sales ahora, no se registrará esta pausa. Puedes retomarla más tarde desde tu
+              inicio.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -287,9 +283,7 @@ function PausaPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {showSuccess && (
-        <PauseSuccessOverlay onClose={() => navigate({ to: "/trabajador" })} />
-      )}
+      {showSuccess && <PauseSuccessOverlay onClose={() => navigate({ to: "/trabajador" })} />}
     </div>
   );
 }

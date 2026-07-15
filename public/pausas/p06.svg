@@ -1,0 +1,18 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura de pie inclinada -->
+    <circle cx="60" cy="16" r="11" fill="#FF6B2B"/>
+    <!-- Espalda arqueada (doblegada) -->
+    <path d="M60 27 Q58 50 55 64" stroke="#FF6B2B" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <!-- Brazos al frente entrelazados -->
+    <path d="M55 40 Q40 44 34 52" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M55 40 Q36 38 30 48" stroke="#FF6B2B" stroke-width="5" stroke-linecap="round" fill="none" stroke-dasharray="3,2"/>
+    <!-- Cadera hacia adelante (flecha) -->
+    <path d="M55 56 L44 56" stroke="#FFD166" stroke-width="2.5"/>
+    <polygon points="44,52 36,56 44,60" fill="#FFD166"/>
+    <!-- Piernas -->
+    <line x1="55" y1="64" x2="50" y2="88" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <line x1="57" y1="64" x2="62" y2="88" stroke="#FF6B2B" stroke-width="7" stroke-linecap="round"/>
+    <!-- Ondas tensión -->
+    <path d="M56 42 Q60 38 64 42 Q68 46 72 42" fill="none" stroke="#1DB954" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">ESPALDA BAJA</text>
+  </svg>

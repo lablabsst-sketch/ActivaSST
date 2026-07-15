@@ -1,0 +1,19 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figura humana sentada -->
+    <circle cx="60" cy="22" r="12" fill="#4ECDC4" stroke="none"/>
+    <!-- Cuerpo -->
+    <rect x="54" y="34" width="12" height="30" rx="6" fill="#4ECDC4"/>
+    <!-- Cuello inclinado derecha -->
+    <line x1="60" y1="22" x2="76" y2="16" stroke="#FFD166" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="80" cy="14" r="8" fill="none" stroke="#FFD166" stroke-width="3"/>
+    <!-- Cuello inclinado izquierda -->
+    <line x1="60" y1="22" x2="44" y2="16" stroke="#FFD166" stroke-width="4" stroke-linecap="round" stroke-dasharray="3,3"/>
+    <!-- Flecha arco -->
+    <path d="M72 10 Q60 4 48 10" fill="none" stroke="#1DB954" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <polygon points="48,6 44,12 54,11" fill="#1DB954"/>
+    <!-- Piernas -->
+    <line x1="57" y1="64" x2="52" y2="88" stroke="#4ECDC4" stroke-width="7" stroke-linecap="round"/>
+    <line x1="63" y1="64" x2="68" y2="88" stroke="#4ECDC4" stroke-width="7" stroke-linecap="round"/>
+    <!-- Texto -->
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">CUELLO</text>
+  </svg>

@@ -1,0 +1,25 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Mano izquierda abierta -->
+    <rect x="8" y="40" width="44" height="50" rx="12" fill="#FFD166" opacity="0.25" stroke="#FFD166" stroke-width="1.5"/>
+    <!-- Dedos izquierda -->
+    <rect x="14" y="26" width="7" height="20" rx="3.5" fill="#FFD166"/>
+    <rect x="24" y="22" width="7" height="24" rx="3.5" fill="#FFD166"/>
+    <rect x="34" y="23" width="7" height="23" rx="3.5" fill="#FFD166"/>
+    <rect x="44" y="26" width="6" height="20" rx="3" fill="#FFD166"/>
+    <!-- Pulgar izquierda -->
+    <rect x="6" y="46" width="14" height="6" rx="3" fill="#FFD166" transform="rotate(-30, 6, 46)"/>
+
+    <!-- Mano derecha puño -->
+    <rect x="68" y="40" width="44" height="50" rx="12" fill="#4ECDC4" opacity="0.25" stroke="#4ECDC4" stroke-width="1.5"/>
+    <rect x="74" y="38" width="30" height="18" rx="6" fill="#4ECDC4"/>
+    <!-- nudillos -->
+    <circle cx="80" cy="38" r="4" fill="#4ECDC4"/>
+    <circle cx="89" cy="35" r="4" fill="#4ECDC4"/>
+    <circle cx="98" cy="37" r="4" fill="#4ECDC4"/>
+
+    <!-- Flecha rotación muñeca -->
+    <path d="M56 52 Q60 40 64 52" fill="none" stroke="#1DB954" stroke-width="3"/>
+    <polygon points="62,52 66,58 70,52" fill="#1DB954"/>
+
+    <text x="60" y="110" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">MANOS</text>
+  </svg>

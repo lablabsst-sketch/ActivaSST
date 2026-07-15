@@ -1,0 +1,22 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cara -->
+    <circle cx="60" cy="38" r="22" fill="#4ECDC4"/>
+    <!-- Ojos -->
+    <ellipse cx="52" cy="36" rx="5" ry="6" fill="#0D0D0D"/>
+    <ellipse cx="68" cy="36" rx="5" ry="6" fill="#0D0D0D"/>
+    <!-- Pupila mirando lejos (derecha) -->
+    <circle cx="55" cy="36" r="2.5" fill="#FFD166"/>
+    <circle cx="71" cy="36" r="2.5" fill="#FFD166"/>
+    <!-- Rayo de visión -->
+    <line x1="80" y1="36" x2="110" y2="36" stroke="#FFD166" stroke-width="2.5" stroke-dasharray="5,4"/>
+    <polygon points="108,32 116,36 108,40" fill="#FFD166"/>
+    <!-- Ondas de pantalla (izquierda) -->
+    <rect x="10" y="60" width="36" height="28" rx="4" fill="#1DB954" opacity="0.3" stroke="#1DB954" stroke-width="1.5"/>
+    <line x1="16" y1="68" x2="40" y2="68" stroke="#1DB954" stroke-width="1.5"/>
+    <line x1="16" y1="74" x2="36" y2="74" stroke="#1DB954" stroke-width="1.5"/>
+    <line x1="16" y1="80" x2="38" y2="80" stroke="#1DB954" stroke-width="1.5"/>
+    <!-- Ojo cerrado con manos (palma) -->
+    <rect x="46" y="62" width="28" height="22" rx="11" fill="#4ECDC4" opacity="0.4"/>
+    <text x="60" y="78" text-anchor="middle" fill="#4ECDC4" font-size="14">🤲</text>
+    <text x="60" y="112" text-anchor="middle" fill="#888" font-size="8" font-family="monospace">VISUAL</text>
+  </svg>
