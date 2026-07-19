@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsuario } from "@/hooks/use-session";
 import { contarSlotsEsperados, type ProgEsperado } from "@/lib/dias-horas";
-import { FileDown, FileText } from "lucide-react";
+import { FileDown, FileText, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/prevencionista/reportes")({
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/prevencionista/reportes")({
       { title: "Reportes — Activa SST" },
       {
         name: "description",
-        content: "Reportes mensuales de pausas activas para cumplimiento SST.",
+        content: "Reportes de pausas activas por periodo para cumplimiento SST.",
       },
     ],
   }),
@@ -47,16 +47,83 @@ const ESTADO_LABEL: Record<string, string> = {
   pendiente: "Pendiente",
 };
 
+type PeriodoId = "semana" | "mes" | "semestre" | "anio";
+
+const PERIODOS: { id: PeriodoId; label: string }[] = [
+  { id: "semana", label: "Semanal" },
+  { id: "mes", label: "Mensual" },
+  { id: "semestre", label: "6 meses" },
+  { id: "anio", label: "Anual" },
+];
+
+// Calcula el rango [desde, hasta] del periodo seleccionado. `hasta` siempre es
+// "ahora": nunca exigimos slots futuros. Los inicios se alinean al calendario
+// (lunes / día 1 / enero) para que los reportes sean reproducibles.
+function rangoPeriodo(
+  periodo: PeriodoId,
+  ahora = new Date(),
+): { desde: Date; hasta: Date; label: string } {
+  const desde = new Date(ahora);
+  desde.setHours(0, 0, 0, 0);
+  let label: string;
+  switch (periodo) {
+    case "semana": {
+      // Lunes de la semana en curso.
+      const dow = (desde.getDay() + 6) % 7; // 0 = lunes
+      desde.setDate(desde.getDate() - dow);
+      label = `Semana del ${desde.toLocaleDateString("es-CO", { day: "numeric", month: "long" })}`;
+      break;
+    }
+    case "mes": {
+      desde.setDate(1);
+      label = desde.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+      break;
+    }
+    case "semestre": {
+      // Primer día del mes, 5 meses atrás (6 meses incluyendo el actual).
+      desde.setDate(1);
+      desde.setMonth(desde.getMonth() - 5);
+      label = `${desde.toLocaleDateString("es-CO", { month: "short", year: "numeric" })} – ${ahora.toLocaleDateString(
+        "es-CO",
+        { month: "short", year: "numeric" },
+      )}`;
+      break;
+    }
+    case "anio": {
+      desde.setMonth(0, 1);
+      label = `Año ${desde.getFullYear()}`;
+      break;
+    }
+  }
+  return { desde, hasta: ahora, label };
+}
+
+const EVIDENCE_KEY = "activa_last_evidence_download";
+const REMINDER_DIAS = 31; // recuerda descargar al menos una vez al mes
+
 function ReportesPage() {
   const { usuario } = useUsuario();
   const [generating, setGenerating] = useState(false);
+  const [periodo, setPeriodo] = useState<PeriodoId>("mes");
 
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
+  const { desde, hasta, label: periodoLabel } = rangoPeriodo(periodo);
+
+  // Recordatorio de descarga de evidencia (retención legal 20 años).
+  const [ultimaDescarga, setUltimaDescarga] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      setUltimaDescarga(localStorage.getItem(EVIDENCE_KEY));
+    } catch {
+      // noop (SSR / storage bloqueado)
+    }
+  }, []);
+  const diasSinDescargar = ultimaDescarga
+    ? Math.floor((Date.now() - new Date(ultimaDescarga).getTime()) / 86_400_000)
+    : null;
+  const mostrarRecordatorio = diasSinDescargar === null || diasSinDescargar >= REMINDER_DIAS;
 
   const reportQuery = useQuery({
-    queryKey: ["reportes-mes", usuario?.empresa_id],
+    queryKey: ["reportes-periodo", usuario?.empresa_id, periodo],
     enabled: !!usuario?.empresa_id,
     queryFn: async () => {
       const { data: empresa } = await supabase
@@ -65,16 +132,14 @@ function ReportesPage() {
         .eq("id", usuario!.empresa_id!)
         .maybeSingle();
 
-      const ahora = new Date();
-      const finPeriodo = ahora; // el periodo llega hasta "ahora" (no exige slots futuros)
-
       // RLS (reg_select_staff) ya restringe a la empresa del prevencionista.
       const { data: registros, error } = await supabase
         .from("pausa_registros")
         .select(
           "id, trabajador_id, estado, duracion_real_seg, respondido_en, usuarios(nombre, email, documento), pausas_oficiales(titulo)",
         )
-        .gte("respondido_en", monthStart.toISOString())
+        .gte("respondido_en", desde.toISOString())
+        .lte("respondido_en", hasta.toISOString())
         .order("respondido_en", { ascending: true })
         .returns<RegistroRow[]>();
       if (error) throw error;
@@ -121,8 +186,8 @@ function ReportesPage() {
         const esperadas = contarSlotsEsperados(
           progs,
           tiposPorTrab.get(tr.id) ?? [],
-          monthStart,
-          finPeriodo,
+          desde,
+          hasta,
           new Date(tr.created_at),
         );
         asignadasPorTrab.set(tr.id, esperadas);
@@ -201,22 +266,36 @@ function ReportesPage() {
     },
   });
 
+  const marcarDescarga = () => {
+    const iso = new Date().toISOString();
+    try {
+      localStorage.setItem(EVIDENCE_KEY, iso);
+    } catch {
+      // noop
+    }
+    setUltimaDescarga(iso);
+  };
+
   const generarPDF = async () => {
     if (!reportQuery.data) return;
     setGenerating(true);
     try {
       const { empresa, kpis, trabajadores, eventos } = reportQuery.data;
       const doc = new jsPDF();
-      const mes = monthStart.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+      const titulo = `Reporte ${PERIODOS.find((p) => p.id === periodo)?.label ?? ""} de Pausas Activas`;
 
       doc.setFontSize(20);
-      doc.text("Reporte Mensual de Pausas Activas", 14, 22);
+      doc.text(titulo, 14, 22);
       doc.setFontSize(12);
       doc.text(`${empresa}`, 14, 32);
-      doc.text(`Periodo: ${mes}`, 14, 40);
-      doc.setFontSize(10);
+      doc.text(`Periodo: ${periodoLabel}`, 14, 40);
+      doc.setFontSize(9);
       doc.setTextColor(100);
-      doc.text("Generado por Activa SST · Cumplimiento Resolución 0312 de 2019", 14, 48);
+      doc.text(
+        `${desde.toLocaleDateString("es-CO")} – ${hasta.toLocaleDateString("es-CO")} · Generado por Activa SST · Cumplimiento Resolución 0312 de 2019`,
+        14,
+        48,
+      );
       doc.setTextColor(0);
 
       doc.setFontSize(14);
@@ -293,13 +372,16 @@ function ReportesPage() {
       doc.setFontSize(8);
       doc.setTextColor(120);
       doc.text(
-        "Documento generado automáticamente · Cumplimiento SST Colombia · Lab Lab SAS",
+        "Documento generado automáticamente · Cumplimiento SST Colombia · Conservar 20 años (Decreto 1072/2015 art. 2.2.4.6.13) · Lab Lab SAS",
         14,
         pageHeight - 10,
       );
 
-      doc.save(`reporte-pausas-${mes.replace(/\s/g, "-")}.pdf`);
-      toast.success("Reporte generado");
+      doc.save(`reporte-pausas-${periodo}-${periodoLabel.replace(/[\s/]+/g, "-")}.pdf`);
+      marcarDescarga();
+      toast.success("Reporte generado", {
+        description: "Guarda este PDF como evidencia legal (retención 20 años).",
+      });
     } catch (e) {
       console.error(e);
       toast.error("No se pudo generar el reporte");
@@ -308,22 +390,59 @@ function ReportesPage() {
     }
   };
 
+  const sinDatos =
+    reportQuery.data && reportQuery.data.kpis.total === 0 && reportQuery.data.kpis.asignadas === 0;
+
   return (
     <AppShell>
       <div className="space-y-4">
         <header>
           <h1 className="text-2xl font-bold">Reportes</h1>
           <p className="text-sm text-muted-foreground">
-            Resumen mensual de adherencia y pausas activas.
+            Adherencia y evidencia de pausas activas por periodo.
           </p>
         </header>
+
+        {mostrarRecordatorio && (
+          <div
+            role="status"
+            className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+          >
+            <ShieldAlert className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <div className="space-y-0.5 text-sm">
+              <p className="font-medium">Descarga y respalda tu evidencia</p>
+              <p className="text-xs">
+                {diasSinDescargar === null
+                  ? "Aún no has descargado ningún reporte."
+                  : `Última descarga hace ${diasSinDescargar} días.`}{" "}
+                La evidencia del SG-SST debe conservarse <strong>20 años</strong> (Decreto
+                1072/2015). Descarga el PDF cada mes y guárdalo en tu archivo documental.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Selector de periodo */}
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Periodo del reporte">
+          {PERIODOS.map((p) => (
+            <Button
+              key={p.id}
+              role="tab"
+              aria-selected={periodo === p.id}
+              variant={periodo === p.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPeriodo(p.id)}
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <FileText className="size-4" aria-hidden />
-              Reporte mensual (
-              {monthStart.toLocaleDateString("es-CO", { month: "long", year: "numeric" })})
+              <span className="capitalize">{periodoLabel}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -359,25 +478,67 @@ function ReportesPage() {
 
             <Button
               onClick={generarPDF}
-              disabled={
-                generating ||
-                !reportQuery.data ||
-                (reportQuery.data.kpis.total === 0 && reportQuery.data.kpis.asignadas === 0)
-              }
+              disabled={generating || !reportQuery.data || sinDatos}
               className="w-full min-h-11"
             >
               <FileDown className="size-4" aria-hidden />
               {generating ? "Generando…" : "Descargar PDF"}
             </Button>
-            {reportQuery.data &&
-              reportQuery.data.kpis.total === 0 &&
-              reportQuery.data.kpis.asignadas === 0 && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Aún no hay pausas programadas ni registradas este mes.
-                </p>
-              )}
+            {sinDatos && (
+              <p className="text-xs text-muted-foreground text-center">
+                Aún no hay pausas programadas ni registradas en este periodo.
+              </p>
+            )}
           </CardContent>
         </Card>
+
+        {/* Cierre de ciclo: quién completó y quién no. */}
+        {reportQuery.data && !sinDatos && reportQuery.data.trabajadores.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Cumplimiento por trabajador</CardTitle>
+            </CardHeader>
+            <CardContent className="px-0 sm:px-6">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs text-muted-foreground">
+                      <th className="px-3 py-2 font-medium">Trabajador</th>
+                      <th className="px-2 py-2 text-right font-medium">Asig.</th>
+                      <th className="px-2 py-2 text-right font-medium">Compl.</th>
+                      <th className="px-3 py-2 text-right font-medium">Adher.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportQuery.data.trabajadores.map((t) => {
+                      const pct =
+                        t.asignadas > 0 ? Math.round((t.completadas / t.asignadas) * 100) : 0;
+                      const incumple = t.asignadas > 0 && t.completadas < t.asignadas;
+                      return (
+                        <tr key={t.nombre} className="border-b last:border-0">
+                          <td className="px-3 py-2">{t.nombre}</td>
+                          <td className="px-2 py-2 text-right tabular-nums">{t.asignadas}</td>
+                          <td className="px-2 py-2 text-right tabular-nums">{t.completadas}</td>
+                          <td
+                            className={`px-3 py-2 text-right font-medium tabular-nums ${
+                              t.asignadas === 0
+                                ? "text-muted-foreground"
+                                : incumple
+                                  ? "text-destructive"
+                                  : "text-primary"
+                            }`}
+                          >
+                            {t.asignadas === 0 ? "—" : `${pct}%`}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppShell>
   );

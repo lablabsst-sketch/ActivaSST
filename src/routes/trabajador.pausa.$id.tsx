@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pause, Play, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,8 @@ export const Route = createFileRoute("/trabajador/pausa/$id")({
 function PausaPage() {
   const { id: programacionId } = Route.useParams();
   const navigate = useNavigate();
-  const { usuario } = useUsuario();
+  const { usuario, loading: usuarioLoading } = useUsuario();
+  const qc = useQueryClient();
   const [confirmExit, setConfirmExit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -124,7 +125,17 @@ function PausaPage() {
   };
 
   const registrar = async (estado: "hecha" | "postpuesta") => {
-    if (!usuario?.id || !pausa?.id) return;
+    // El perfil aún puede estar cargando: avisamos en vez de fallar en silencio.
+    if (usuarioLoading || progQ.isLoading) {
+      toast.info("Un momento", { description: "Aún estamos cargando tu pausa" });
+      return;
+    }
+    if (!usuario?.id || !pausa?.id) {
+      toast.error("No pudimos identificar la pausa", {
+        description: "Vuelve a tu inicio e intenta de nuevo",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const { error } = await supabase.from("pausa_registros").insert({
@@ -137,6 +148,13 @@ function PausaPage() {
         response_uuid: crypto.randomUUID(),
       });
       if (error) throw error;
+      // Refresca las vistas que dependen de los registros para que la pausa
+      // recién completada aparezca de inmediato (dashboard, historial, reportes).
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["registros-hoy"] }),
+        qc.invalidateQueries({ queryKey: ["historial"] }),
+        qc.invalidateQueries({ queryKey: ["reportes-periodo"] }),
+      ]);
       if (estado === "hecha") {
         setShowSuccess(true);
       } else {
