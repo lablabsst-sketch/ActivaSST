@@ -747,6 +747,14 @@ export type Database = {
     }
     Functions: {
       current_password_set: { Args: never; Returns: boolean }
+      diagnose_pausa_registro_insert: {
+        Args: { p_programacion_id: string }
+        Returns: {
+          code: string
+          message: string
+          ok: boolean
+        }[]
+      }
       email_is_whitelisted: { Args: { p_email: string }; Returns: boolean }
       get_login_email_by_cedula: { Args: { p_cedula: string }; Returns: string }
       mark_password_set: { Args: never; Returns: undefined }
