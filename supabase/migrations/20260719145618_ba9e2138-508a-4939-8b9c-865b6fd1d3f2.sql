@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.uq_pausa_registros_prog_trab;
