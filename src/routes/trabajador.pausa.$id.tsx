@@ -148,8 +148,6 @@ function PausaPage() {
         response_uuid: crypto.randomUUID(),
       });
       if (error) throw error;
-      // Refresca las vistas que dependen de los registros para que la pausa
-      // recién completada aparezca de inmediato (dashboard, historial, reportes).
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["registros-hoy"] }),
         qc.invalidateQueries({ queryKey: ["historial"] }),
@@ -164,9 +162,49 @@ function PausaPage() {
         navigate({ to: "/trabajador" });
       }
     } catch (err) {
-      toast.error("Algo no salió bien", {
-        description: err instanceof Error ? err.message : "Reintenta o contacta soporte",
-      });
+      // Postgres devuelve 42501 cuando el INSERT no pasa el WITH CHECK de RLS.
+      // Diagnosticamos qué condición exactamente falló para dar feedback claro.
+      const raw = err as { code?: string; message?: string };
+      const code = raw?.code;
+      const message =
+        err instanceof Error ? err.message : (raw?.message ?? "");
+      const isRls =
+        code === "42501" ||
+        /row-level security|violates row-level security/i.test(message);
+
+      if (isRls) {
+        try {
+          const { data: diag, error: diagErr } = await supabase.rpc(
+            "diagnose_pausa_registro_insert",
+            { p_programacion_id: programacionId },
+          );
+          if (diagErr) throw diagErr;
+          const row = Array.isArray(diag) ? diag[0] : diag;
+          const diagMsg =
+            (row as { message?: string } | null)?.message ??
+            "No se pudo identificar el motivo";
+          const diagCode =
+            (row as { code?: string } | null)?.code ?? "rls_denied";
+          console.warn("[pausa-registro] RLS denegó el INSERT", {
+            diagCode,
+            diagMsg,
+            rawMessage: message,
+          });
+          toast.error("No podemos registrar esta pausa", {
+            description: `${diagMsg} (${diagCode})`,
+          });
+        } catch (diagCallErr) {
+          console.error("[pausa-registro] Diagnóstico falló", diagCallErr);
+          toast.error("No podemos registrar esta pausa", {
+            description:
+              message || "Permiso denegado por las reglas de acceso",
+          });
+        }
+      } else {
+        toast.error("Algo no salió bien", {
+          description: message || "Reintenta o contacta soporte",
+        });
+      }
     } finally {
       setSubmitting(false);
     }
