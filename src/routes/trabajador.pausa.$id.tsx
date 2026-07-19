@@ -166,11 +166,9 @@ function PausaPage() {
       // Diagnosticamos qué condición exactamente falló para dar feedback claro.
       const raw = err as { code?: string; message?: string };
       const code = raw?.code;
-      const message =
-        err instanceof Error ? err.message : (raw?.message ?? "");
+      const message = err instanceof Error ? err.message : (raw?.message ?? "");
       const isRls =
-        code === "42501" ||
-        /row-level security|violates row-level security/i.test(message);
+        code === "42501" || /row-level security|violates row-level security/i.test(message);
 
       if (isRls) {
         try {
@@ -181,10 +179,8 @@ function PausaPage() {
           if (diagErr) throw diagErr;
           const row = Array.isArray(diag) ? diag[0] : diag;
           const diagMsg =
-            (row as { message?: string } | null)?.message ??
-            "No se pudo identificar el motivo";
-          const diagCode =
-            (row as { code?: string } | null)?.code ?? "rls_denied";
+            (row as { message?: string } | null)?.message ?? "No se pudo identificar el motivo";
+          const diagCode = (row as { code?: string } | null)?.code ?? "rls_denied";
           console.warn("[pausa-registro] RLS denegó el INSERT", {
             diagCode,
             diagMsg,
@@ -196,8 +192,7 @@ function PausaPage() {
         } catch (diagCallErr) {
           console.error("[pausa-registro] Diagnóstico falló", diagCallErr);
           toast.error("No podemos registrar esta pausa", {
-            description:
-              message || "Permiso denegado por las reglas de acceso",
+            description: message || "Permiso denegado por las reglas de acceso",
           });
         }
       } else {
