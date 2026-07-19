@@ -1,20 +1,24 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Users, Search, Pencil, Mail, AlertCircle, UserX, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Users,
+  Search,
+  Pencil,
+  Mail,
+  AlertCircle,
+  UserX,
+  Trash2,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +37,7 @@ import {
 import { AltaTrabajadorDialog } from "@/components/alta-trabajador-dialog";
 import { EditTrabajadorDialog } from "@/components/edit-trabajador-dialog";
 import { deleteWorker, resendInvite } from "@/lib/api/workers.functions";
+import { descargarEvidenciaTrabajador } from "@/lib/evidencia";
 import type { Database } from "@/integrations/supabase/types";
 
 type Trabajador = Database["public"]["Tables"]["usuarios"]["Row"];
@@ -58,6 +63,7 @@ function TrabajadoresPage() {
   const [deleteTarget, setDeleteTarget] = useState<Trabajador | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
+  const [descargando, setDescargando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<FiltroEstado>("todos");
   const [search, setSearch] = useState("");
   const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
@@ -161,6 +167,22 @@ function TrabajadoresPage() {
       });
     } finally {
       setResending(null);
+    }
+  };
+
+  const handleDescargarEvidencia = async (t: Trabajador) => {
+    setDescargando(t.id);
+    try {
+      await descargarEvidenciaTrabajador(t);
+      toast.success("Evidencia descargada", {
+        description: "Guárdala como soporte legal (retención 20 años).",
+      });
+    } catch (err) {
+      toast.error("No se pudo generar la evidencia", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setDescargando(null);
     }
   };
 
@@ -298,73 +320,83 @@ function TrabajadoresPage() {
             <ul className="space-y-2">
               {filtrados.map((t) => {
                 const isNew =
-                  lastCreatedAt > 0 &&
-                  new Date(t.created_at).getTime() >= lastCreatedAt;
+                  lastCreatedAt > 0 && new Date(t.created_at).getTime() >= lastCreatedAt;
                 return (
-                <li
-                  key={t.id}
-                  ref={(el) => {
-                    if (el) rowRefs.set(t.id, el);
-                    else rowRefs.delete(t.id);
-                  }}
-                  className={
-                    "rounded-lg border border-border bg-card p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between " +
-                    (isNew ? "animate-pulse-green" : "")
-                  }
-                >
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium truncate">{t.nombre || "—"}</span>
-                      <EstadoBadge estado={t.estado} />
+                  <li
+                    key={t.id}
+                    ref={(el) => {
+                      if (el) rowRefs.set(t.id, el);
+                      else rowRefs.delete(t.id);
+                    }}
+                    className={
+                      "rounded-lg border border-border bg-card p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between " +
+                      (isNew ? "animate-pulse-green" : "")
+                    }
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium truncate">{t.nombre || "—"}</span>
+                        <EstadoBadge estado={t.estado} />
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{t.email}</p>
+                      <p className="text-xs text-muted-foreground">CC {t.documento || "—"}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{t.email}</p>
-                    <p className="text-xs text-muted-foreground">CC {t.documento || "—"}</p>
-                  </div>
-                  <div className="flex items-center gap-1 sm:shrink-0">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditTarget(t)}
-                      aria-label={`Editar ${t.nombre || t.email}`}
-                      className="min-touch"
-                    >
-                      <Pencil className="size-4" aria-hidden />
-                    </Button>
-                    {t.estado === "pendiente" && !t.password_set && (
+                    <div className="flex items-center gap-1 sm:shrink-0">
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleResend(t.id)}
-                        disabled={resending === t.id}
-                        aria-label="Reenviar invitación"
+                        onClick={() => setEditTarget(t)}
+                        aria-label={`Editar ${t.nombre || t.email}`}
                         className="min-touch"
                       >
-                        <Mail className="size-4" aria-hidden />
+                        <Pencil className="size-4" aria-hidden />
                       </Button>
-                    )}
-                    {t.estado !== "inactivo" && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDesactivar(t.id)}
-                        className="min-h-11"
+                        onClick={() => handleDescargarEvidencia(t)}
+                        disabled={descargando === t.id}
+                        aria-label={`Descargar evidencia de ${t.nombre || t.email}`}
+                        title="Descargar evidencia (Habeas Data + historial de pausas)"
+                        className="min-touch"
                       >
-                        Desactivar
+                        <ShieldCheck className="size-4" aria-hidden />
                       </Button>
-                    )}
-                    {t.estado === "inactivo" && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDeleteTarget(t)}
-                        aria-label={`Eliminar ${t.nombre || t.email}`}
-                        className="min-touch text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="size-4" aria-hidden />
-                      </Button>
-                    )}
-                  </div>
-                </li>
+                      {t.estado === "pendiente" && !t.password_set && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleResend(t.id)}
+                          disabled={resending === t.id}
+                          aria-label="Reenviar invitación"
+                          className="min-touch"
+                        >
+                          <Mail className="size-4" aria-hidden />
+                        </Button>
+                      )}
+                      {t.estado !== "inactivo" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDesactivar(t.id)}
+                          className="min-h-11"
+                        >
+                          Desactivar
+                        </Button>
+                      )}
+                      {t.estado === "inactivo" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setDeleteTarget(t)}
+                          aria-label={`Eliminar ${t.nombre || t.email}`}
+                          className="min-touch text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="size-4" aria-hidden />
+                        </Button>
+                      )}
+                    </div>
+                  </li>
                 );
               })}
             </ul>
@@ -408,9 +440,9 @@ function TrabajadoresPage() {
             <AlertDialogTitle>¿Eliminar trabajador?</AlertDialogTitle>
             <AlertDialogDescription>
               Vas a eliminar permanentemente a{" "}
-              <strong>{deleteTarget?.nombre || deleteTarget?.email}</strong>.
-              Esta acción no se puede deshacer y borra su cuenta de acceso.
-              El historial de pausas ya registrado se conserva.
+              <strong>{deleteTarget?.nombre || deleteTarget?.email}</strong>. Esta acción no se
+              puede deshacer y borra su cuenta de acceso. El historial de pausas ya registrado se
+              conserva.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

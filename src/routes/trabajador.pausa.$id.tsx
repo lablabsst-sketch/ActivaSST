@@ -146,6 +146,9 @@ function PausaPage() {
         duracion_real_seg: estado === "hecha" ? elapsedSec() : null,
         respondido_en: new Date().toISOString(),
         response_uuid: crypto.randomUUID(),
+        // Rastro auditable: qué dispositivo/navegador ejecutó la pausa. Útil como
+        // evidencia de que fue la cuenta del titular (Habeas Data / investigaciones).
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
       });
       if (error) throw error;
       await Promise.all([
