@@ -40,7 +40,7 @@ export const alertasBajaAdherencia = createServerFn({ method: "GET" })
       .single();
     if (!caller?.empresa_id) return { count: 0, total: 0, sin_programaciones: true };
     if (!["prevencionista", "empresa_admin"].includes(caller.rol)) {
-      throw new Error("No autorizado");
+      return { count: 0, total: 0, sin_programaciones: true };
     }
 
     const { supabase } = context;
