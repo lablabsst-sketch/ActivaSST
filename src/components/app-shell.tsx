@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, CalendarClock, FileText, Home, LogIn, ShieldCheck, Sparkles, User, Users } from "lucide-react";
-import { ServiceWorkerBadge } from "./sw-badge";
 import { PwaInstallButton } from "./pwa-install-button";
 import { ReConsentGate } from "./re-consent-gate";
 import { CommandPalette } from "./command-palette";
@@ -113,7 +112,6 @@ export function AppShell({ children }: AppShellProps) {
             </Link>
             <div className="ml-auto flex items-center gap-2">
               <PwaInstallButton />
-              <ServiceWorkerBadge />
             </div>
           </div>
         </header>
