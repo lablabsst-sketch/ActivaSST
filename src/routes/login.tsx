@@ -14,10 +14,7 @@ import {
   checkRegistrationEligibility,
   completeRegistration,
 } from "@/lib/api/registration.functions";
-import {
-  getSessionRouting,
-  resolveLoginEmailByCedula,
-} from "@/lib/api/login.functions";
+import { getSessionRouting } from "@/lib/api/login.functions";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -31,42 +28,6 @@ export const Route = createFileRoute("/login")({
 
 const NEUTRAL_ERROR = "Credenciales inválidas. Verifica tus datos e intenta de nuevo.";
 
-// ---------- Rate limit por cédula (5/min, lock 15min) ----------
-const LOCK_KEY = (c: string) => `login-lock:${c}`;
-const ATTEMPTS_KEY = (c: string) => `login-attempts:${c}`;
-function getLockRemaining(cedula: string): number {
-  try {
-    const v = localStorage.getItem(LOCK_KEY(cedula));
-    if (!v) return 0;
-    const until = parseInt(v, 10);
-    const left = until - Date.now();
-    return left > 0 ? Math.ceil(left / 1000) : 0;
-  } catch {
-    return 0;
-  }
-}
-function pushAttempt(cedula: string): { locked: boolean; remaining: number } {
-  try {
-    const now = Date.now();
-    const arr: number[] = JSON.parse(localStorage.getItem(ATTEMPTS_KEY(cedula)) ?? "[]");
-    const recent = arr.filter((t) => now - t < 60_000);
-    recent.push(now);
-    localStorage.setItem(ATTEMPTS_KEY(cedula), JSON.stringify(recent));
-    if (recent.length >= 5) {
-      const until = now + 15 * 60_000;
-      localStorage.setItem(LOCK_KEY(cedula), String(until));
-      return { locked: true, remaining: 15 * 60 };
-    }
-    return { locked: false, remaining: 0 };
-  } catch {
-    return { locked: false, remaining: 0 };
-  }
-}
-
-const cedulaSchema = z.object({
-  cedula: z.string().trim().min(4, "Cédula no válida"),
-  password: z.string().min(1, "Ingresa tu contraseña"),
-});
 const emailSchema = z.object({
   email: z.string().email("Correo no válido"),
   password: z.string().min(1, "Ingresa tu contraseña"),
@@ -74,7 +35,7 @@ const emailSchema = z.object({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"cedula" | "email" | "registro">("cedula");
+  const [tab, setTab] = useState<"email" | "registro">("email");
   const [prefillEmail, setPrefillEmail] = useState<string>("");
 
   useEffect(() => {
@@ -104,21 +65,15 @@ function LoginPage() {
         <header className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight">Iniciar sesión</h1>
           <p className="text-sm text-muted-foreground">
-            Entra con tu cédula y contraseña. ¿Primera vez? Ve a "Crear cuenta".
+            Entra con tu correo y contraseña. ¿Primera vez? Ve a "Crear cuenta".
           </p>
         </header>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="cedula">Cédula</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="email">Correo</TabsTrigger>
             <TabsTrigger value="registro">Crear cuenta</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="cedula" className="pt-4">
-            <CedulaForm onSuccess={() => routeBySession(navigate)} />
-            <ForgotLink />
-          </TabsContent>
 
           <TabsContent value="email" className="pt-4">
             <EmailForm
@@ -178,84 +133,6 @@ async function routeBySession(navigate: ReturnType<typeof useNavigate>) {
   } catch {
     navigate({ to: "/login", replace: true });
   }
-}
-
-function CedulaForm({ onSuccess }: { onSuccess: () => void }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    watch,
-  } = useForm<z.infer<typeof cedulaSchema>>({ resolver: zodResolver(cedulaSchema) });
-  const cedula = watch("cedula") ?? "";
-  const lockLeft = cedula ? getLockRemaining(cedula) : 0;
-
-  const onSubmit = async (v: z.infer<typeof cedulaSchema>) => {
-    const left = getLockRemaining(v.cedula);
-    if (left > 0) {
-      toast.error(`Demasiados intentos. Reintenta en ${Math.ceil(left / 60)} min.`);
-      return;
-    }
-    const { email } = await resolveLoginEmailByCedula({
-      data: { cedula: v.cedula.trim() },
-    });
-    if (!email) {
-      pushAttempt(v.cedula);
-      toast.error(NEUTRAL_ERROR);
-      return;
-    }
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: v.password,
-    });
-    if (error || !data.session) {
-      pushAttempt(v.cedula);
-      toast.error(NEUTRAL_ERROR);
-      return;
-    }
-    onSuccess();
-  };
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="cedula">Cédula</Label>
-        <Input
-          id="cedula"
-          inputMode="numeric"
-          autoComplete="username"
-          placeholder="1023456789"
-          {...register("cedula")}
-        />
-        {errors.cedula && <p className="text-xs text-destructive">{errors.cedula.message}</p>}
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="cedula-pw">Contraseña</Label>
-        <Input
-          id="cedula-pw"
-          type="password"
-          autoComplete="current-password"
-          {...register("password")}
-        />
-        {errors.password && (
-          <p className="text-xs text-destructive">{errors.password.message}</p>
-        )}
-      </div>
-      {lockLeft > 0 && (
-        <p className="text-xs text-destructive">
-          Bloqueado por {Math.ceil(lockLeft / 60)} min por seguridad.
-        </p>
-      )}
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full"
-        disabled={isSubmitting || lockLeft > 0}
-      >
-        {isSubmitting ? "Entrando…" : "Entrar"}
-      </Button>
-    </form>
-  );
 }
 
 function EmailForm({

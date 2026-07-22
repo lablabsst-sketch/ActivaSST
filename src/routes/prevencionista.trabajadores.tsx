@@ -353,14 +353,15 @@ function TrabajadoresPage() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => handleDescargarEvidencia(t)}
                         disabled={descargando === t.id}
                         aria-label={`Descargar evidencia de ${t.nombre || t.email}`}
-                        title="Descargar evidencia (Habeas Data + historial de pausas)"
-                        className="min-touch"
+                        title="Descargar evidencia legal (Habeas Data + historial de pausas)"
+                        className="min-h-11 gap-1.5"
                       >
                         <ShieldCheck className="size-4" aria-hidden />
+                        {descargando === t.id ? "Generando…" : "Evidencia"}
                       </Button>
                       {t.estado === "pendiente" && !t.password_set && (
                         <Button
