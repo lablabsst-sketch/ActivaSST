@@ -9,45 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as PerfilRouteImport } from './routes/perfil'
-import { Route as PoliticaTratamientoDatosRouteImport } from './routes/politica-tratamiento-datos'
-import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
-import { Route as RestablecerPasswordRouteImport } from './routes/restablecer-password'
 import { Route as TerminosCondicionesRouteImport } from './routes/terminos-condiciones'
-import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
-import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
-import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
-import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
-import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
-import { Route as PrevencionistaReportesRouteImport } from './routes/prevencionista.reportes'
-import { Route as PrevencionistaSolicitudesArcoRouteImport } from './routes/prevencionista.solicitudes-arco'
-import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
+import { Route as RestablecerPasswordRouteImport } from './routes/restablecer-password'
+import { Route as RecuperarPasswordRouteImport } from './routes/recuperar-password'
+import { Route as PoliticaTratamientoDatosRouteImport } from './routes/politica-tratamiento-datos'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrabajadorIndexRouteImport } from './routes/trabajador.index'
+import { Route as PrevencionistaIndexRouteImport } from './routes/prevencionista.index'
 import { Route as TrabajadorHistorialRouteImport } from './routes/trabajador.historial'
+import { Route as PrevencionistaTrabajadoresRouteImport } from './routes/prevencionista.trabajadores'
+import { Route as PrevencionistaSolicitudesArcoRouteImport } from './routes/prevencionista.solicitudes-arco'
+import { Route as PrevencionistaReportesRouteImport } from './routes/prevencionista.reportes'
+import { Route as PrevencionistaProgramacionesRouteImport } from './routes/prevencionista.programaciones'
+import { Route as PrevencionistaPausasRouteImport } from './routes/prevencionista.pausas'
+import { Route as PerfilConfigurarPasswordRouteImport } from './routes/perfil.configurar-password'
+import { Route as AdminBootstrapRouteImport } from './routes/admin.bootstrap'
 import { Route as TrabajadorPausaIdRouteImport } from './routes/trabajador.pausa.$id'
 import { Route as ApiPublicHooksReconcileUsuariosRouteImport } from './routes/api/public/hooks/reconcile-usuarios'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const TerminosCondicionesRoute = TerminosCondicionesRouteImport.update({
+  id: '/terminos-condiciones',
+  path: '/terminos-condiciones',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const RestablecerPasswordRoute = RestablecerPasswordRouteImport.update({
+  id: '/restablecer-password',
+  path: '/restablecer-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerfilRoute = PerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
+const RecuperarPasswordRoute = RecuperarPasswordRouteImport.update({
+  id: '/recuperar-password',
+  path: '/recuperar-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticaTratamientoDatosRoute =
@@ -56,40 +51,56 @@ const PoliticaTratamientoDatosRoute =
     path: '/politica-tratamiento-datos',
     getParentRoute: () => rootRouteImport,
   } as any)
-const RecuperarPasswordRoute = RecuperarPasswordRouteImport.update({
-  id: '/recuperar-password',
-  path: '/recuperar-password',
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RestablecerPasswordRoute = RestablecerPasswordRouteImport.update({
-  id: '/restablecer-password',
-  path: '/restablecer-password',
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TerminosCondicionesRoute = TerminosCondicionesRouteImport.update({
-  id: '/terminos-condiciones',
-  path: '/terminos-condiciones',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
-  id: '/admin/bootstrap',
-  path: '/admin/bootstrap',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PerfilConfigurarPasswordRoute =
-  PerfilConfigurarPasswordRouteImport.update({
-    id: '/configurar-password',
-    path: '/configurar-password',
-    getParentRoute: () => PerfilRoute,
-  } as any)
+const TrabajadorIndexRoute = TrabajadorIndexRouteImport.update({
+  id: '/trabajador/',
+  path: '/trabajador/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrevencionistaIndexRoute = PrevencionistaIndexRouteImport.update({
   id: '/prevencionista/',
   path: '/prevencionista/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrevencionistaPausasRoute = PrevencionistaPausasRouteImport.update({
-  id: '/prevencionista/pausas',
-  path: '/prevencionista/pausas',
+const TrabajadorHistorialRoute = TrabajadorHistorialRouteImport.update({
+  id: '/trabajador/historial',
+  path: '/trabajador/historial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrevencionistaTrabajadoresRoute =
+  PrevencionistaTrabajadoresRouteImport.update({
+    id: '/prevencionista/trabajadores',
+    path: '/prevencionista/trabajadores',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PrevencionistaSolicitudesArcoRoute =
+  PrevencionistaSolicitudesArcoRouteImport.update({
+    id: '/prevencionista/solicitudes-arco',
+    path: '/prevencionista/solicitudes-arco',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PrevencionistaReportesRoute = PrevencionistaReportesRouteImport.update({
+  id: '/prevencionista/reportes',
+  path: '/prevencionista/reportes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrevencionistaProgramacionesRoute =
@@ -98,31 +109,20 @@ const PrevencionistaProgramacionesRoute =
     path: '/prevencionista/programaciones',
     getParentRoute: () => rootRouteImport,
   } as any)
-const PrevencionistaReportesRoute = PrevencionistaReportesRouteImport.update({
-  id: '/prevencionista/reportes',
-  path: '/prevencionista/reportes',
+const PrevencionistaPausasRoute = PrevencionistaPausasRouteImport.update({
+  id: '/prevencionista/pausas',
+  path: '/prevencionista/pausas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrevencionistaSolicitudesArcoRoute =
-  PrevencionistaSolicitudesArcoRouteImport.update({
-    id: '/prevencionista/solicitudes-arco',
-    path: '/prevencionista/solicitudes-arco',
-    getParentRoute: () => rootRouteImport,
+const PerfilConfigurarPasswordRoute =
+  PerfilConfigurarPasswordRouteImport.update({
+    id: '/configurar-password',
+    path: '/configurar-password',
+    getParentRoute: () => PerfilRoute,
   } as any)
-const PrevencionistaTrabajadoresRoute =
-  PrevencionistaTrabajadoresRouteImport.update({
-    id: '/prevencionista/trabajadores',
-    path: '/prevencionista/trabajadores',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const TrabajadorIndexRoute = TrabajadorIndexRouteImport.update({
-  id: '/trabajador/',
-  path: '/trabajador/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrabajadorHistorialRoute = TrabajadorHistorialRouteImport.update({
-  id: '/trabajador/historial',
-  path: '/trabajador/historial',
+const AdminBootstrapRoute = AdminBootstrapRouteImport.update({
+  id: '/admin/bootstrap',
+  path: '/admin/bootstrap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrabajadorPausaIdRoute = TrabajadorPausaIdRouteImport.update({
@@ -297,46 +297,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/perfil': {
-      id: '/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof PerfilRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/politica-tratamiento-datos': {
-      id: '/politica-tratamiento-datos'
-      path: '/politica-tratamiento-datos'
-      fullPath: '/politica-tratamiento-datos'
-      preLoaderRoute: typeof PoliticaTratamientoDatosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recuperar-password': {
-      id: '/recuperar-password'
-      path: '/recuperar-password'
-      fullPath: '/recuperar-password'
-      preLoaderRoute: typeof RecuperarPasswordRouteImport
+    '/terminos-condiciones': {
+      id: '/terminos-condiciones'
+      path: '/terminos-condiciones'
+      fullPath: '/terminos-condiciones'
+      preLoaderRoute: typeof TerminosCondicionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/restablecer-password': {
@@ -346,67 +311,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestablecerPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terminos-condiciones': {
-      id: '/terminos-condiciones'
-      path: '/terminos-condiciones'
-      fullPath: '/terminos-condiciones'
-      preLoaderRoute: typeof TerminosCondicionesRouteImport
+    '/recuperar-password': {
+      id: '/recuperar-password'
+      path: '/recuperar-password'
+      fullPath: '/recuperar-password'
+      preLoaderRoute: typeof RecuperarPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/bootstrap': {
-      id: '/admin/bootstrap'
-      path: '/admin/bootstrap'
-      fullPath: '/admin/bootstrap'
-      preLoaderRoute: typeof AdminBootstrapRouteImport
+    '/politica-tratamiento-datos': {
+      id: '/politica-tratamiento-datos'
+      path: '/politica-tratamiento-datos'
+      fullPath: '/politica-tratamiento-datos'
+      preLoaderRoute: typeof PoliticaTratamientoDatosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/perfil/configurar-password': {
-      id: '/perfil/configurar-password'
-      path: '/configurar-password'
-      fullPath: '/perfil/configurar-password'
-      preLoaderRoute: typeof PerfilConfigurarPasswordRouteImport
-      parentRoute: typeof PerfilRoute
-    }
-    '/prevencionista/': {
-      id: '/prevencionista/'
-      path: '/prevencionista'
-      fullPath: '/prevencionista/'
-      preLoaderRoute: typeof PrevencionistaIndexRouteImport
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prevencionista/pausas': {
-      id: '/prevencionista/pausas'
-      path: '/prevencionista/pausas'
-      fullPath: '/prevencionista/pausas'
-      preLoaderRoute: typeof PrevencionistaPausasRouteImport
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prevencionista/programaciones': {
-      id: '/prevencionista/programaciones'
-      path: '/prevencionista/programaciones'
-      fullPath: '/prevencionista/programaciones'
-      preLoaderRoute: typeof PrevencionistaProgramacionesRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/prevencionista/reportes': {
-      id: '/prevencionista/reportes'
-      path: '/prevencionista/reportes'
-      fullPath: '/prevencionista/reportes'
-      preLoaderRoute: typeof PrevencionistaReportesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prevencionista/solicitudes-arco': {
-      id: '/prevencionista/solicitudes-arco'
-      path: '/prevencionista/solicitudes-arco'
-      fullPath: '/prevencionista/solicitudes-arco'
-      preLoaderRoute: typeof PrevencionistaSolicitudesArcoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prevencionista/trabajadores': {
-      id: '/prevencionista/trabajadores'
-      path: '/prevencionista/trabajadores'
-      fullPath: '/prevencionista/trabajadores'
-      preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trabajador/': {
@@ -416,11 +360,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrabajadorIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prevencionista/': {
+      id: '/prevencionista/'
+      path: '/prevencionista'
+      fullPath: '/prevencionista/'
+      preLoaderRoute: typeof PrevencionistaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trabajador/historial': {
       id: '/trabajador/historial'
       path: '/trabajador/historial'
       fullPath: '/trabajador/historial'
       preLoaderRoute: typeof TrabajadorHistorialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prevencionista/trabajadores': {
+      id: '/prevencionista/trabajadores'
+      path: '/prevencionista/trabajadores'
+      fullPath: '/prevencionista/trabajadores'
+      preLoaderRoute: typeof PrevencionistaTrabajadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prevencionista/solicitudes-arco': {
+      id: '/prevencionista/solicitudes-arco'
+      path: '/prevencionista/solicitudes-arco'
+      fullPath: '/prevencionista/solicitudes-arco'
+      preLoaderRoute: typeof PrevencionistaSolicitudesArcoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prevencionista/reportes': {
+      id: '/prevencionista/reportes'
+      path: '/prevencionista/reportes'
+      fullPath: '/prevencionista/reportes'
+      preLoaderRoute: typeof PrevencionistaReportesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prevencionista/programaciones': {
+      id: '/prevencionista/programaciones'
+      path: '/prevencionista/programaciones'
+      fullPath: '/prevencionista/programaciones'
+      preLoaderRoute: typeof PrevencionistaProgramacionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prevencionista/pausas': {
+      id: '/prevencionista/pausas'
+      path: '/prevencionista/pausas'
+      fullPath: '/prevencionista/pausas'
+      preLoaderRoute: typeof PrevencionistaPausasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil/configurar-password': {
+      id: '/perfil/configurar-password'
+      path: '/configurar-password'
+      fullPath: '/perfil/configurar-password'
+      preLoaderRoute: typeof PerfilConfigurarPasswordRouteImport
+      parentRoute: typeof PerfilRoute
+    }
+    '/admin/bootstrap': {
+      id: '/admin/bootstrap'
+      path: '/admin/bootstrap'
+      fullPath: '/admin/bootstrap'
+      preLoaderRoute: typeof AdminBootstrapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trabajador/pausa/$id': {
@@ -475,3 +475,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
