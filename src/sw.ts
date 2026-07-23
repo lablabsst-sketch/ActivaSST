@@ -37,6 +37,16 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Chrome (Android/desktop) exige que el Service Worker tenga un handler `fetch`
+// para considerar la PWA instalable y disparar `beforeinstallprompt` (el banner
+// de instalación). No cacheamos nada: sin `event.respondWith()` el navegador
+// procesa cada petición con normalidad (network passthrough). En iOS la
+// instalación es siempre manual (Compartir → Agregar a inicio) y no depende
+// de esto.
+self.addEventListener("fetch", () => {
+  // Passthrough intencional.
+});
+
 function parsePush(event: PushEvent): PushPayload {
   if (!event.data) return {};
   try {
