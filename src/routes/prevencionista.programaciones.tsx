@@ -113,6 +113,9 @@ function ProgramacionesPage() {
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Programa</p>
             <h1 className="text-2xl font-bold tracking-tight">Programaciones</h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Define cuándo se disparan las pausas y a quién aplican.
+            </p>
           </div>
           <Button
             size="sm"

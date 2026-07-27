@@ -296,24 +296,31 @@ function PausaPage() {
               </CardContent>
             </Card>
 
-            <div className="sticky bottom-4 mt-auto flex gap-2">
-              <Button
-                size="lg"
-                className="flex-1 text-base"
-                onClick={() => registrar("hecha")}
-                disabled={submitting}
-              >
-                Completar
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="flex-1"
-                onClick={() => registrar("postpuesta")}
-                disabled={submitting}
-              >
-                Más tarde
-              </Button>
+            <div className="sticky bottom-4 mt-auto flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  size="lg"
+                  className="flex-1 text-base"
+                  onClick={() => registrar("hecha")}
+                  disabled={submitting || secsLeft !== 0}
+                >
+                  Completar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => registrar("postpuesta")}
+                  disabled={submitting}
+                >
+                  Más tarde
+                </Button>
+              </div>
+              <p className="text-center text-xs text-muted-foreground">
+                {secsLeft !== 0
+                  ? "Termina el tiempo de la pausa para poder registrarla como completada."
+                  : "«Más tarde» la pospone y te la recordamos más adelante."}
+              </p>
             </div>
           </>
         )}

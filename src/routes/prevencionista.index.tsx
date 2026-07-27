@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, BarChart3, Bell, Users, ArrowRight, CalendarClock } from "lucide-react";
+import { Activity, BarChart3, Bell, Users, ArrowRight, CalendarClock, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -278,12 +278,13 @@ function PrevencionistaPage() {
           >
             <Card className="cursor-pointer transition hover:shadow-md hover:border-primary/40">
               <CardHeader className="pb-2 flex-row items-center gap-2 space-y-0">
-                <CalendarClock className="size-5 text-primary" />
+                <ShieldCheck className="size-5 text-primary" />
                 <CardTitle className="text-base">Solicitudes Habeas Data</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Atiende solicitudes ARCO de tu equipo. SLA 10 días hábiles.
+                  Peticiones de datos que tus trabajadores envían desde su Perfil.
+                  Debes responderlas en 15 días calendario.
                 </p>
                 <p className="mt-1 inline-flex items-center gap-1 text-xs text-primary">
                   Ver solicitudes <ArrowRight className="size-3" />

@@ -473,6 +473,11 @@ function ReportesPage() {
                   <p className="text-2xl font-semibold">{reportQuery.data.kpis.adherencia}%</p>
                   <p className="text-xs text-muted-foreground">Adherencia</p>
                 </div>
+                <p className="col-span-2 text-left text-xs text-muted-foreground sm:col-span-4">
+                  <strong>Completadas</strong> = pausas hechas + postpuestas ·{" "}
+                  <strong>Incumplidas</strong> = vencidas sin responder ·{" "}
+                  <strong>Adherencia</strong> = completadas ÷ asignadas.
+                </p>
               </div>
             ) : null}
 

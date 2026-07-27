@@ -380,6 +380,7 @@ function TrabajadoresPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDesactivar(t.id)}
+                          title="Suspende el acceso pero conserva su historial de pausas como evidencia. Reversible."
                           className="min-h-11"
                         >
                           Desactivar
@@ -391,6 +392,7 @@ function TrabajadoresPage() {
                           variant="ghost"
                           onClick={() => setDeleteTarget(t)}
                           aria-label={`Eliminar ${t.nombre || t.email}`}
+                          title="Borra al trabajador de forma permanente. Descarga antes su evidencia legal si la necesitas."
                           className="min-touch text-destructive hover:text-destructive"
                         >
                           <Trash2 className="size-4" aria-hidden />

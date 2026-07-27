@@ -27,17 +27,10 @@ const TIPO_LABEL: Record<string, string> = {
   revocacion: "Revocación consentimiento",
 };
 
-function diasHabilesDesde(iso: string): number {
+function diasCalendarioDesde(iso: string): number {
   const start = new Date(iso);
-  let days = 0;
-  const today = new Date();
-  const cursor = new Date(start);
-  while (cursor < today) {
-    cursor.setDate(cursor.getDate() + 1);
-    const d = cursor.getDay();
-    if (d !== 0 && d !== 6) days++;
-  }
-  return days;
+  const ms = Date.now() - start.getTime();
+  return Math.max(0, Math.floor(ms / 86_400_000));
 }
 
 function SolicitudesPage() {
@@ -66,10 +59,23 @@ function SolicitudesPage() {
         <header>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Habeas Data</p>
           <h1 className="text-2xl font-bold tracking-tight">Solicitudes ARCO</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            SLA legal: 10 días hábiles para responder (Ley 1581/2012).
-          </p>
         </header>
+
+        <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground space-y-1.5">
+          <p className="font-medium text-foreground">¿Qué son y de dónde salen?</p>
+          <p>
+            Tus trabajadores pueden pedir <strong>acceso, rectificación, eliminación,
+            oposición o revocación</strong> de sus datos desde su{" "}
+            <strong>Perfil → Mis derechos (Habeas Data)</strong>. Esas peticiones
+            llegan aquí.
+          </p>
+          <p>
+            Escribe tu respuesta en cada solicitud y márcala{" "}
+            <strong>Resuelta</strong> o <strong>Rechazada</strong>: queda registrada
+            como evidencia. Tienes <strong>15 días calendario</strong> para responder
+            (Ley 1581/2012).
+          </p>
+        </div>
 
         {q.isLoading ? (
           <Skeleton className="h-32 w-full rounded-lg" />
@@ -82,7 +88,9 @@ function SolicitudesPage() {
         ) : (q.data ?? []).length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-sm text-muted-foreground text-center">
-              No hay solicitudes registradas.
+              Aún no hay solicitudes. Cuando un trabajador pida algo sobre sus
+              datos desde su Perfil → Mis derechos, aparecerá aquí para que la
+              atiendas.
             </CardContent>
           </Card>
         ) : (
@@ -116,9 +124,9 @@ function SolicitudCard({
   pending: boolean;
 }) {
   const [respuesta, setRespuesta] = useState("");
-  const dias = diasHabilesDesde(s.created_at);
-  const slaWarn = s.estado === "pendiente" && dias >= 8;
-  const slaBreach = s.estado === "pendiente" && dias > 10;
+  const dias = diasCalendarioDesde(s.created_at);
+  const slaWarn = s.estado === "pendiente" && dias >= 12;
+  const slaBreach = s.estado === "pendiente" && dias > 15;
   const usuario = (s as Sol & { usuarios?: { nombre?: string; email?: string } | null }).usuarios;
 
   return (

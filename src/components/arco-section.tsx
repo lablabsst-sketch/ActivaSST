@@ -75,7 +75,7 @@ export function ArcoSection() {
     mutationFn: (v: { tipo: Tipo; descripcion: string }) =>
       crearFn({ data: v }),
     onSuccess: () => {
-      toast.success("Solicitud enviada. El responsable tiene 10 días hábiles para responder.");
+      toast.success("Solicitud enviada. El responsable tiene 15 días calendario para responder.");
       qc.invalidateQueries({ queryKey: ["arco-mis"] });
       setTipo(null);
       setDescripcion("");
@@ -96,7 +96,8 @@ export function ArcoSection() {
         <CardTitle className="text-base">Mis derechos (Habeas Data)</CardTitle>
         <CardDescription className="text-xs">
           Ley 1581/2012. Tienes derecho a acceder, rectificar, cancelar, oponerte
-          y revocar el tratamiento de tus datos.
+          y revocar el tratamiento de tus datos. Tu empresa responderá en máximo
+          15 días calendario.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -179,7 +180,7 @@ export function ArcoSection() {
             <DialogDescription className="text-xs">
               {tipo === "cancelacion"
                 ? "La eliminación NO es automática: la ley puede obligar a conservar registros SST por hasta 20 años. Tu prevencionista revisará la solicitud."
-                : "Cuéntanos brevemente lo que necesitas. Tu responsable de tratamiento tiene 10 días hábiles para responder."}
+                : "Cuéntanos brevemente lo que necesitas. Tu responsable de tratamiento tiene 15 días calendario para responder."}
             </DialogDescription>
           </DialogHeader>
 
