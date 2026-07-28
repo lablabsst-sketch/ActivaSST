@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Activity, ShieldCheck, User } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { useUsuario } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,6 +20,33 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const { session, usuario, loading } = useUsuario();
+  const navigate = useNavigate();
+
+  // La PWA arranca en `/` (start_url). Si el usuario ya tiene sesión activa
+  // (caso normal al reabrir la app instalada), lo llevamos directo a su panel
+  // en vez de mostrarle la portada de login.
+  useEffect(() => {
+    if (loading || !session || !usuario) return;
+    if (usuario.estado === "pendiente") {
+      navigate({ to: "/onboarding", replace: true });
+    } else {
+      navigate({
+        to: usuario.rol === "trabajador" ? "/trabajador" : "/prevencionista",
+        replace: true,
+      });
+    }
+  }, [loading, session, usuario, navigate]);
+
+  // Mientras resolvemos una sesión existente, evitamos parpadear la portada.
+  if (loading || (session && usuario)) {
+    return (
+      <AppShell>
+        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <section className="flex flex-col gap-6 pt-6">

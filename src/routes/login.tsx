@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsuario } from "@/hooks/use-session";
 import {
   checkRegistrationEligibility,
   completeRegistration,
@@ -35,8 +36,16 @@ const emailSchema = z.object({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { session, usuario, loading } = useUsuario();
   const [tab, setTab] = useState<"email" | "registro">("email");
   const [prefillEmail, setPrefillEmail] = useState<string>("");
+
+  // Si el usuario abre /login ya autenticado (p. ej. reabriendo la PWA), lo
+  // enviamos a su panel en vez de mostrarle el formulario otra vez.
+  useEffect(() => {
+    if (loading || !session || !usuario) return;
+    routeByMeta({ rol: usuario.rol, estado: usuario.estado }, navigate);
+  }, [loading, session, usuario, navigate]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -58,6 +67,15 @@ function LoginPage() {
     // URL y dejamos al usuario en /login sin redirigir a rutas eliminadas.
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
+
+  // Mientras resolvemos una sesión existente, evitamos parpadear el formulario.
+  if (loading || (session && usuario)) {
+    return (
+      <AppShell>
+        <p className="pt-8 text-center text-sm text-muted-foreground">Cargando…</p>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
